@@ -1,0 +1,21 @@
+---
+title: "Tema 1: Fundamentos de la minería de datos"
+author: "Alvaro Chirino"
+output: html_document
+date: "Agosto, 2024"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Fuente de datos
+
+## Censo
+
+## Encuestas
+
+  - Encuestas probabilísticas
+  - Encuestas no probabilísticas
+  
+  
