@@ -3,6 +3,8 @@ title: "Tema 1: Fundamentos de la minería de datos"
 author: "Alvaro Chirino"
 output: html_document
 date: "Agosto, 2024"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -177,7 +179,7 @@ Ejemplos:
 
 ## Enfoques de análisis
 
-### Basado en el KDD
+### Basado en el *KDD*
 
 ![](_fig/f4.png)
 
@@ -201,7 +203,7 @@ Ejemplos:
     
 ### Inteligencia de Negocios (BI)
 
-BI permite a una organización obtener información sobre el rendimiento de una empresa mediante el análisis de los datos generados por sus procesos comerciales y sistemas de información. La gerencia puede utilizar los resultados del análisis para **dirigir el negocio** en un esfuerzo por **corregir los problemas** detectados o mejorar el desempeño de la organización. BI aplica análisis a grandes cantidades de datos en toda la empresa, que normalmente se ha consolidado en un **almacén de datos empresarial** para ejecutar consultas analíticas.
+BI permite a una organización obtener información sobre el rendimiento de una empresa mediante el análisis de los datos generados por sus procesos comerciales y sistemas de información. La gerencia puede utilizar los resultados del análisis para **dirigir el negocio** en un esfuerzo por **corregir los problemas** detectados o mejorar el *desempeño* de la organización. BI aplica análisis a grandes cantidades de datos en toda la empresa, que normalmente se ha consolidado en un **almacén de datos empresarial** para ejecutar consultas analíticas.
 
 ![](_fig/bi.PNG)
 
@@ -258,23 +260,23 @@ $$X->G, X->CP$$
 
 ## Visualización
 
-> Los usuarios pueden escanear, reconocer, comprender y recordar representaciones visualmente estructuradas más rápidamente de lo que pueden procesar representaciones no estructuradas
+> Los usuarios pueden escanear, reconocer, comprender y recordar *representaciones visualmente estructuradas* más rápidamente de lo que pueden procesar *representaciones no estructuradas*
 
-> La ciencia de la visualización se basa en múltiples campos, como la psicología perceptiva, las estadísticas y el diseño gráfico para presentar información
+> La ciencia de la visualización se basa en múltiples campos, como la *psicología perceptiva*, las *estadísticas* y el *diseño gráfico* para presentar información
 
-> La efectividad de una visualización depende tanto de las necesidades de análisis como de los objetivos de diseño.
+> La efectividad de una visualización depende tanto de las necesidades de *análisis* como de los objetivos de *diseño*.
 
-> El diseño, el desarrollo y la evaluación de una visualización se guían por la comprensión de los antecedentes y las metas del público objetivo.
+> El diseño, el desarrollo y la evaluación de una visualización se guían por la *comprensión* de los *antecedentes* y las metas del *público objetivo*.
 
-El desarrollo de una visualización efectiva es un proceso iterativo que generalmente incluye los siguientes pasos:
+El desarrollo de una *visualización efectiva* es un proceso iterativo que generalmente incluye los *siguientes pasos*:
 
-  * Especificar las necesidades del usuario, tareas, requisitos de accesibilidad y criterios para el éxito.
-  * Preparar datos (limpiar, transformar).
+  * Especificar las necesidades del *usuario*, tareas, requisitos de accesibilidad y criterios para el éxito.
+  * Preparar *datos* (limpiar, transformar).
   * Diseñar representaciones visuales.
-  * Interacción de diseño.
-  * Planifique el intercambio de ideas, procedencia.
-  * Prototipo / evaluación, incluidas las pruebas de usabilidad.
-  * Implementar (supervisar el uso, proporcionar soporte al usuario, gestionar el proceso de revisión).
+  * *Interacción* de diseño.
+  * Planifique el *intercambio* de ideas, procedencia.
+  * *Prototipo* / evaluación, incluidas las pruebas de usabilidad.
+  * *Implementar* (supervisar el uso, proporcionar soporte al usuario, gestionar el proceso de revisión).
 
 ### Dashboards
 
@@ -296,7 +298,113 @@ El desarrollo de una visualización efectiva es un proceso iterativo que general
 
 ## Introducción a R
 
-## Web Scraping
+### Lógica de los comandos
+
+$$f(x)=y$$
+
+  - Se deben escribir como: comando(argumentos...)
+    + El nombre del comando es único y completo
+    + Existen argumentos obligatorios y opcionales
+    + Se puede omitir el nombre del argumento, siempre que se respete el orden de estos.
+    
+```{r}
+#R como calculadora
+log(x=2, base = exp(1))
+log(x=2)
+log(2)
+log(base=10, x=2)
+log(base=exp(1), x=2)
+exp(10)
+exp(0)
+exp(-9999999)
+sqrt(4)
+?sqrt # ayuda del comando
+apropos("test") #buscador de comandos
+```
+
+### Librerías
+
+  - El R viene con un set de comandos y librerías en la instalación básica
+  - Una librería es una colección de comandos con un objetivo
+  - Se debe distinguir:
+    + Las librerías que están instaladas en el equipo
+    + Las librerías disponibles en la sesión
+    + Las librerías que no están instaladas en el equipo
+
+```{r}
+library()# el listado de las librerías instaladas
+library(foreign)# habilitar una librería en la sesión
+install.packages("dplyr")#Instala una librería en el equipo. Solo se usa una vez
+install.packages("rvest")
+library(dplyr)
+library(rvest)
+library(help=rvest)# ayuda de la librería
+rvest::read_html()# permite el uso de un comando específico de una librería sin liberar la librería
+```
+
+### Estructuras
+
+El R es un lenguaje orientado a objetos, por lo tanto, trabajo con múltiples objetos.  
+
+En el R estas estructuras se pueden almacenar simultáneamente, con el operador: =, <-
+  
+  - Homogéneas: Son estructuras que tienen elementos de la misma clase o tipo. Las clases posibles son:
+    + Números: 1, 2, 4
+    + Texto, carácter: "hola", "hoy es miércoles" 
+    + Lógicos: TRUE/T, FALSE/F
+    + Factor (nivel): Sexo (H/M)
+    
+```{r}
+1
+"hola"
+T
+class(1)
+class("hola")
+class(T)
+# Estructuras homogéneas
+#Scalar 1x1
+s1<-2
+s2<-"chau"
+s3<-"mañana es jueves"
+s4<-F
+# vector nx1. Vectores columna
+v1<-c(2,3,5,7,11,13)
+v2<-c("hola", "chau", "estamos en septiembre")
+v3<-c(2,3,5, "hola", 7)
+class(v1)
+class(v2)
+class(v3)
+#operaciones sobre vectores
+v1*2
+v1^5
+v1/s1
+sum(v1)
+mean(v1)
+length(v1)
+mean(v3)# NA: Not available
+# Algunos vectores especiales
+v4<-1:1000
+v5<-rep(3,10)
+v6<-rep(c(1,2),10)
+v7<-seq(1,100,5)
+#vectores aleatorios
+v8<-rnorm(20,30,5)
+set.seed(841)#semilla aleatoria
+v9<-runif(20, 0,100)
+v10<-v9>50
+# matriz nxm
+
+# array 
+```
+  
+  - Heterogéneas
+
+### Funciones en R
+### Loops, funciones de programación
+
+## Web Scraping (raspado web)
+
+
 
 ## Ejercicios
 
