@@ -8,7 +8,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = F)
 ```
 
 ## Conceptos y terminología
@@ -402,15 +402,219 @@ v10<-v9>50
 ### Funciones en R
 ### Loops, funciones de programación
 
-## Web Scraping (raspado web)
+## Scraping Web
 
+La definición del scraping web que se toma en este documento proviene de [@Mitchell2015] que expresa:
 
+> El Web Scraping es la **recolección automática** de *información* de los *sitios web*. (obviamente no a través de un humano usando un navegador web).
 
-## Ejercicios
+Un tema dentro del scraping web son las denominadas *APIs* (Application Programming Interface), *estas son entradas a las páginas web diseñadas por los administradores de la página web*, **por lo mismo no siempre contienen toda la información que se desea**. Aunque las API no son tan *ubicuas* como deberían, puede encontrar API para muchos tipos de información. Interesado en la música? Hay algunas API diferentes que pueden darle canciones, artistas, álbumes e incluso información sobre estilos musicales y artistas relacionados. ¿Necesitas datos deportivos? ESPN proporciona API para información de atletas, puntajes de juegos y más. Google tiene docenas de API en su sección de Desarrolladores para traducciones de idiomas, análisis, geolocalización y más.
+
+### Pasos para la recopilación de información (flujo de trabajo)
+
+Siguiendo a [@Iacus2015] que establece cinco pasos al momento de decidir recopilar información mediante el scraping web, estos pasos son:
+
+1.  *Asegúrese de saber exactamente qué tipo de información necesita*. Esto puede ser específico (*el producto interno bruto de todos los países de la OCDE durante los últimos 10 años*) o vago (opinión de la gente sobre el teléfono de la empresa X, colaboración entre miembros del Senado de los Estados Unidos).
+2. Averigüe si hay *fuentes de datos en la Web* que puedan proporcionar información *directa o indirecta* sobre su problema. Si está buscando hechos concretos, esto probablemente sea fácil. Si está interesado en conceptos bastante vagos, esto es más difícil.
+3. Desarrolle una teoría del proceso de *generación de datos* cuando busque fuentes potenciales. ¿Cuándo se generaron los datos, cuándo se cargaron en la Web y quién lo hizo? ¿Existen áreas potenciales que no están cubiertas, son consistentes o precisas, y puede identificarlas y corregirlas? (*calidad*)
+4. Equilibrar las *ventajas* y *desventajas* de las *posibles fuentes de datos*. Los aspectos relevantes pueden ser la *disponibilidad* (¡y la *legalidad*!), los *costos* de recolección, la *compatibilidad* de nuevas fuentes con la investigación existente, pero también factores *muy subjetivos* como la *aceptación* de la fuente de datos por parte de otros. También piense en posibles formas de *validar* la *calidad de sus datos.* ¿Existen otras fuentes independientes que brinden información similar para que sean posibles verificaciones cruzadas aleatorias? En caso de datos secundarios, ¿puede identificar la fuente original y verificar los errores de transferencia?
+5. ¡Toma una decisión! Elija la fuente de datos que le parezca más adecuada, *documente* los motivos de la decisión y comience con los preparativos para la *recopilación*. Si es factible, recopile datos de *varias fuentes* para validar las fuentes de datos. Muchos problemas y beneficios de varias *estrategias de recopilación* de datos salen a la luz solo después de la recopilación real.
+
+> Actividad (10 min): Buscar artículos de investigación (paper) que usen el web scraping. 
+Fuente de datos, objetivo, método.
+    
+### Tecnologías de diseminación, extracción y almacenamiento Web
+
+Una vez elegida la *fuente de datos* (página web) y al menos con la intuición de lo que se quiere obtener, el siguiente paso es decidir el mecanismos para el scraping (raspado), esto esta relacionado al *tipo de pagina web*, ver si esta ofrece una entrada *API* y conocer sus limitaciones puede ser un punto de partida. Esto se denomina *Technologies for disseminating, extracting, and storing web data Collecting*, en el marco del uso de R la siguiente figura muestra las interacciones entre ellas.
+
+![](_fig/scrap1.png)
+
+*Tecnologías para difundir, extraer y almacenar datos web (considerando el entorno de R)*
+
+### Librerías en R
+
+Existen dos librerías muy completas para hacer el raspado:
+
+  + **rvest:** Es bastante sencilla de utilizar, aprovecha el código html (código fuente) de la página web y genera dataframes de tablas web. (*páginas estáticas*)
+  + **selenium:** Es útil cuando las páginas son dinámicas
+
+El siguiente cuadro presenta las librerías en R relacionadas al web Scraping, incluyendo los servicios API, que a la fecha del proyecto alcanza a 761 librerías, esto representa el $5.02$% de las librerías en en R.
+
+```{r,eval=F,message=FALSE}
+library(knitr)
+library(packagefinder)
+library(xtable)
+findPackage(c("API","scrape"),limit.results=-1)
+```
+
+> Actividad 2
+
+Siguiendo los 5 pasos mencionados anteriormente, defina un tema de interés.
+
+  1. Definir el tema:
+  2. Identificar fuentes (web):
+  3. Calidad de las fuentes:
+  4. Ventajas y desventajas:
+  5. Elegir la fuente:
+  6. Realizar el raspado web de la información de interés
+
+### HTML
+
+  + ¿Qué es?: *Lenguaje* de texto que se utiliza para *estructurar* y *desplegar* una página *web*
+  + ¿Qué significa?: HyperText Markup Language
+  + Regla/atributos: Funciona en términos de elementos, etiquetas y atributos. Tiene una estructura jerárquica.
+    - Existe una jerarquía 
+    - Funciona en base a *entornos* (encapsulamiento)
+    - Dentro de los entornos existen atributos
+
+### Librería rvest
+
+Rvest es parte del universo **tidyverse** y esta orientada al scrape de páginas web. La instalación es usual:
+
+```{r,eval=F}
+#desde CRAN
+install.packages("rvest")
+install.packages("dplyr")
+#la versión en desarrollo desde github
+devtools::install_github("tidyverse/rvest")
+```
+
+Existe la herramienta selectorgadget disponible en http://selectorgadget.com/, esta permite interactuar con las páginas web para seleccionar partes del documento usando un CSS selector. Las funciones mas importantes dentro de rvest son:
+
+  * **read_html**: para cargar la estructura de la página
+  * **html_nodes**: para extraer información de la página según el CSS selector
+  * **html_text**: para extraer texto de un html_nodes
+  * **html_table**: para extraer tablas y ponerlas en data frame
+
+Como se vio antes, una herramienta para facilitar la identificación del CSS o "nodo" es el selector gadget.
+
+### Ejemplo: enlaces descargables
+
+```{r}
+rm(list=ls())
+library(rvest)
+library(xml2)
+#######################
+www<-"https://www.asfi.gob.bo/index.php/mv-estadisticas/mv-boletines-estadisticos.html"
+asfi<-read_html(www)
+reportes<-html_nodes(asfi,"td")
+#reportes<-asfi %>% html_nodes("td")
+aux<-html_attr(html_nodes(reportes,"a"),"href")
+#aux<-reportes %>% html_nodes("a") %>% html_attr("href")
+aux1<-paste0("https://www.asfi.gob.bo",aux)
+pp<-grep(".xlsx",aux1)
+aux2<-aux1[pp]
+
+download.file(aux2[1] , "_data/enero2024.xlsx", mode = "wb")
+for(i in 1:length(aux2)){
+  print(i)
+  nombre<-paste0("_data/boletin/bol_",i,".xlsx")
+  download.file(aux2[i],nombre, mode = "wb")
+}
+```
+
+### Ejemplo: armar una base de datos de una tienda digital
+
+  + Objetivo: Monitoreo de los precios de venta de casas en los departamentos del eje central
+  + Fuentes: ultracasas, infocasas
+    - fuente, precio, zona, superficie, departamento
+    
+```{r}
+rm(list=ls())
+library(rvest)
+library(xml2)
+library(dplyr)
+www<-"https://www.infocasas.com.bo/venta/casas/la-paz/pagina1"
+####base de datos
+infocasas<-read_html(www)
+aux<-html_nodes(infocasas,".lc-dataWrapper")
+#zona
+zona<-html_text2(html_nodes(aux, ".lc-location"))
+#precio
+precio<-html_text2(html_nodes(aux,".lc-price"))
+#superficie
+superficie<-html_text2(html_nodes(aux,".lc-typologyTag"))
+bd<-data.frame(zona,precio,superficie, depto="La Paz",fuente="infocasas")
+###############################
+#recolección de más páginas
+www<-"https://www.infocasas.com.bo/venta/casas/la-paz/pagina"
+bd<-NULL
+for(i in 1:23){
+  print(i)
+  infocasas<-read_html(paste0(www,i))  
+  aux<-html_nodes(infocasas,".lc-dataWrapper")
+  #zona
+  zona<-html_text2(html_nodes(aux, ".lc-location"))
+  #precio
+  precio<-html_text2(html_nodes(aux,".lc-price"))
+  #superficie
+  superficie<-html_text2(html_nodes(aux,".lc-typologyTag"))
+  bdaux<-data.frame(zona,precio,superficie, depto="La Paz",fuente="infocasas")
+  bd<-bd %>% bind_rows(bdaux)
+}
+bd %>% View()
+```
+
+## APIs
+
+Conocida también por la sigla API,"*application programming interface*", es un conjunto de sub rutinas, funciones y procedimientos (o métodos, en la programación orientada a objetos) que ofrece cierta *biblioteca* para ser utilizado por otro *software*. Ofrece una entrada a los datos que distribuye el API.
+
+### API Banco Mundial
+
+La API ofrece acceso a las estadísticas que genera (capta) el Banco Mundial, existe un set extenso de estadísticas de la *mayoría de los países*. La API ofrece mas de *16000* indicadores de *series de tiempo*, muchos de los indicadores tienen una cobertura de *50 años*. La API incluye el acceso a *45 bases* de datos, incluyendo:
+
+* World Development Indicators
+* International Debt Statistcs
+* Doing Business
+* Human Capital Index
+* Subnational Poverty
+* Y otros, [ver](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation)
+
+En R se puede acceder mediante la librería wbstats.
+
+```{r,eval=F}
+rm(list=ls())
+#install.packages("wbstats")
+library("wbstats")
+#library(help="wbstats")
+#paso 1, instalar el rtools: https://cran.r-project.org/bin/windows/Rtools/
+#paso 2, instalar devtools
+#install.packages("devtools")
+#paso 3, cargar el devtools
+#library(devtools)
+#paso4, instalar wbstats
+#install_github("nset-ornl/wbstats")
+#acceso a todos los indicadores disponibles
+wbindex<-wb_indicators("es")
+bd1<-wb_data("1.0.HCount.1.90usd")
+#búsqueda de indicador
+index_edu<-wb_search(pattern = "education")
+index_sal<-wb_search(pattern = "health")
+index_pib<-wb_search(pattern = "gdp")
+# ver los países y sus códigos 
+wbpais<-wb_countries()             
+#Comando para extraer los indicadores
+t1<-wb_data(country = c("BOL","PER"), indicator = "NY.GDP.MKTP.CD", start_date = 1900, end_date = 2024)
+
+t1[t1$iso2c=="BO", ]
+
+plot(t1$date[t1$iso2c=="BO"], t1$NY.GDP.MKTP.CD[t1$iso2c=="BO"], col="red", type = "b")
+
+plot(t1$date[t1$iso2c=="PE"], t1$NY.GDP.MKTP.CD[t1$iso2c=="PE"], col="blue", type = "b")
+#unir
+plot(t1$date[t1$iso2c=="BO"], t1$NY.GDP.MKTP.CD[t1$iso2c=="BO"], col="red", type = "b", ylim = c(0, 300000000000))
+points(t1$date[t1$iso2c=="PE"], t1$NY.GDP.MKTP.CD[t1$iso2c=="PE"], col="blue", type = "b")
+
+t2<-wb_data(country = c("BOL","PER"),indicator = "SE.SEC.TCHR", start_date = 2000, end_date = 2020)
+```
+
+## Ejercicios Propuestos
 
 1. Explorar los métodos cuasi-experimentales que existen 
-2. Buscar información respecto a: los matriculados en educación regular y universidad por año y departamento en Bolivia
-3. Buscar dos papers (1) donde se uso machine learning y (2) análisis de texto y comentar.
-
-
-
+2. Buscar dos papers (1) donde se uso machine learning y (2) análisis de texto y comentar.
+3. Extraer la fecha, y el precio de compra y venta del dolar de la página https://www.bcb.gob.bo
+4. Usando la página https://www.trabajopolis.bo/ seleccionar un departamento y armar una base de dato de ofertas laborales
+5. Armar una base de datos en base a la página https://www.infocasas.com.bo
+6. Explorar librerias API con acceso a Youtube y encontrar los 10 videos con más visualizaciones que incluyan a Bolivia en su titulo.
+7. Explorar la librería gtrendsR y explorar en que meses en Bolivia es mas frecuente la búsqueda de ...
+8. Usar la información de worldometers y generar un gráfico de contagios por millón de los distintos países.
