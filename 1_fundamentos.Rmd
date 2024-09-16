@@ -488,6 +488,40 @@ Existe la herramienta selectorgadget disponible en http://selectorgadget.com/, e
 
 Como se vio antes, una herramienta para facilitar la identificación del CSS o "nodo" es el selector gadget.
 
+### Funcionamiento de rvest
+
+```{r}
+rm(list = ls())
+library(rvest)
+library(dplyr)
+
+wd<-read_html("https://www.worldometers.info/population/countries-in-latin-america-and-the-caribbean-by-population/")
+
+urgente<-read_html("https://www.urgente.bo/coyuntura?page=0")
+
+wd %>% html_nodes("h1") %>% html_text()
+
+urgente %>% html_nodes(".news-box") %>% html_nodes(".clearfix") %>% html_nodes("a") %>% html_text()
+
+urgente %>% html_attr("href")
+
+urgente %>% html_children() %>%html_children() %>%  html_attr("href")
+
+urgente %>% html_nodes(".news-box") %>% html_nodes(".clearfix") %>% html_nodes(".views-field-title") %>% html_text2()
+
+t1<-wd %>% html_table()
+t1<-t1[[1]]
+
+```
+
+> Actividad: Identificar una página web de interés y realizar el raspado de elementos de interés. (8:40)
+
+```{r}
+ejemplo<-read_html("https://www.coinbase.com/es-la/converter/usdt/bob")
+aux1<-ejemplo %>% html_table()
+aux1[[1]] %>% View()
+```
+
 ### Ejemplo: enlaces descargables
 
 ```{r}
