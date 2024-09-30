@@ -610,7 +610,7 @@ En R se puede acceder mediante la librería wbstats.
 rm(list=ls())
 #install.packages("wbstats")
 library("wbstats")
-#library(help="wbstats")
+library(help="wbstats")
 #paso 1, instalar el rtools: https://cran.r-project.org/bin/windows/Rtools/
 #paso 2, instalar devtools
 #install.packages("devtools")
@@ -630,6 +630,10 @@ wbpais<-wb_countries()
 #Comando para extraer los indicadores
 t1<-wb_data(country = c("BOL","PER"), indicator = "NY.GDP.MKTP.CD", start_date = 1900, end_date = 2024)
 
+t1$NY.GDP.MKTP.CD
+t1$iso2c=="BO"
+
+
 t1[t1$iso2c=="BO", ]
 
 plot(t1$date[t1$iso2c=="BO"], t1$NY.GDP.MKTP.CD[t1$iso2c=="BO"], col="red", type = "b")
@@ -639,7 +643,13 @@ plot(t1$date[t1$iso2c=="PE"], t1$NY.GDP.MKTP.CD[t1$iso2c=="PE"], col="blue", typ
 plot(t1$date[t1$iso2c=="BO"], t1$NY.GDP.MKTP.CD[t1$iso2c=="BO"], col="red", type = "b", ylim = c(0, 300000000000))
 points(t1$date[t1$iso2c=="PE"], t1$NY.GDP.MKTP.CD[t1$iso2c=="PE"], col="blue", type = "b")
 
-t2<-wb_data(country = c("BOL","PER"),indicator = "SE.SEC.TCHR", start_date = 2000, end_date = 2020)
+
+t2<-wb_data(country = c("BOL","ARG", "BRA"), indicator = "NY.GDP.DEFL.KD.ZG", start_date = 1993, end_date = 2023)
+
+install.packages("ggplot2")
+library(ggplot2)
+
+ggplot(t2, aes(date, NY.GDP.DEFL.KD.ZG, colour = country)) + geom_point()
 ```
 
 ## Ejercicios Propuestos
