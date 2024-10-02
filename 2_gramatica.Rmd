@@ -3,7 +3,7 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-# Pre procesamiento - Gramática de datos
+# Pre procesamiento - Gramática del manejo datos
 
   - Recopilación
   - Importación
@@ -31,7 +31,7 @@ editor_options:
     
 ## Recopilación
 
-  + Depende de la fuente de información de interés
+  + Depende de la fuente de información de interés y la pregunta de investigación
 
 ## Importación
 
@@ -40,7 +40,8 @@ En el tema anterior, se vio con el uso de rvest la forma de conseguir datos de l
 El primer paso que se debe seguir es identificar la fuente de información y el formato (.xlsx, .csv, .pdf, .sav, etc.)
 
 > Ejemplo: Se quiere estudiar la pobreza y su relación con la educación en el área urbano y rural. 
-> Ejemplo: Se quiere estudiar la relación entre los votos obtenidos por las dos principales fuerzas en la última elección a presidente de Bolivia. 
+> Ejemplo: Se quiere estudiar la relación entre los votos obtenidos por las dos principales fuerzas en la última elección a presidente de Bolivia.
+> Ejemplo: Qué producto tiene el mayor volúmen de exportación e importación? 
 
 > ¿Qué fuente de datos se puede usar, en que formato esta disponible?. ¿Es disponible la información?
 
@@ -60,54 +61,28 @@ En general la información puede estar en cualquier formato, sin embargo, existe
   + (microdatos) .sav SPSS, .dta Stata
   + json, xml, sql (gestores de bases de datos)
   
-> Tarea: Descargar la encuesta a hogares 2021.
-
-Traer una base de datos externa y cargarla en el sistema de interés. En nuestro caso en R.
-
-Hay varias librerías útiles para la importación
-
 ```{r}
 rm(list=ls())
-#install.packages("haven")
-#install.packages("labelled")
-#install.packages("readxl")
-library(haven)#SPSS, STATA
-library(labelled)#ETIQUETAS 
-library(readxl)#EXCEL
-###############################
-# CSV
-e20 <-read.csv("C:\\Users\\clases\\Downloads\\bd_raw\\votos_totales.csv", header = T, sep= "|")
-View(e20)
-#exportar 
-save(e20,file = "_bd/elecciones2020.RData")
-###cargar objetos RData
-rm(list = ls())
-load("_bd/elecciones2020.RData")
-#excel
-edu<-read_excel("C:\\Users\\clases\\Downloads\\bd_raw\\3020114.xlsx")
-
-edu2<-read_excel("C:\\Users\\clases\\Downloads\\bd_raw\\3020114.xlsx", 
-range = "A10:AH22")
-
-edu3<-read_excel("C:\\Users\\clases\\Downloads\\bd_raw\\3020114.xlsx",sheet = 2)
-#SPSS
-dd<-"C:\\Users\\clases\\Downloads\\bd_raw\\Base de datos\\"
-
-eh21de<-read_sav(paste0(dd,"EH2021_Defunciones.sav"))
-eh21di<-read_sav(paste0(dd,"EH2021_Discriminacion.sav"))
-eh21eq<-read_sav(paste0(dd,"EH2021_Equipamiento.sav"))
-eh21ga<-read_sav(paste0(dd,"EH2021_Gastos Alimentarios.sav"))
-eh21gna<-read_sav(paste0(dd,"EH2021_Gastos no Alimentarios.sav"))
-eh21pe<-read_sav(paste0(dd,"EH2021_Persona.sav"))
-eh21sa<-read_sav(paste0(dd,"EH2021_Seguridad Alimentaria.sav"))
-eh21vi<-read_sav(paste0(dd,"EH2021_Vivienda.sav"))
-save(eh21de,eh21di,eh21eq,eh21ga,eh21gna,eh21pe,eh21sa,eh21vi,
-     file="_bd/eh21.RData")
+library(readxl)
+library(foreign)# DBF
+e24<-read_xlsx("C:\\Users\\CLASES\\Downloads\\EXPORTACIONES ENE A AGO 2024p.xlsx")
+i24<-read_xlsx("C:\\Users\\CLASES\\Downloads\\IMPORTACIONES_ENE_AGO_2024p.xlsx")
+save(i24, e24, file = "_data/ie24.RData")
+#dataset de mapas
+asfi2018<-read.dbf("C:\\Users\\CLASES\\Downloads\\Localización de Entidades Bancarias en Bolivia_ 2018\\3365f39b-5240-4843-9378-7754c36d6dd5\\asfi2018geo.dbf")
+save(asfi2018, file="_data/asfi2018.RData")
+#CSV
+e20<-read.csv("C:\\Users\\CLASES\\Downloads\\votos_totales.csv", sep = "|")
+save(e20, file = "_data/e20.RData")
 ```
+  
+> Tarea: Descargar la encuesta a hogares 2022.
 
 ## Exploración
 
 Meta data de la dataset:
+
+> Elecciones 2020
 
   - **Población Objetivo:** Mesas electorales de las elecciones para presidente de 2020
   - **Unidad de análisis:** Mesas electorales
@@ -117,6 +92,8 @@ Meta data de la dataset:
   - **Cobertura temporal:** 2020
   - **Cobertura temática:** Resultados de apoyo electoral
   - **Diseño estadístico:** Registro administrativo
+
+> Tarea: Armar la meta data de la EH-2022.
 
 ### Diccionario de variables
 
