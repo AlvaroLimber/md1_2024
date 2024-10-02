@@ -1,0 +1,652 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+# Pre procesamiento - Gramática de datos
+
+  - Recopilación
+  - Importación
+  - Exploración
+    * Diccionario de variables
+    * Niveles de agregación
+    * Descripción univariada 
+    * Identificando relaciones
+    * Aproximación Visual (Visualización)
+  - Filtrado y selección
+    * Filtrado de observaciones
+    * Selección de variables
+    * Pivot, Reshape
+    * Uniendo bases de datos
+  - Muestreo, estimación, error estándar y confiabilidad
+    * Diseño muestral
+    * Estimación
+    * Rendimiento
+  - Transformación
+    * Adecuación de formatos
+    * Limpieza de texto
+    * Creación de variables
+    * Valores atípicos
+    * Valores perdidos
+    
+## Recopilación
+
+  + Depende de la fuente de información de interés
+
+## Importación
+
+En el tema anterior, se vio con el uso de rvest la forma de conseguir datos de la web. 
+
+El primer paso que se debe seguir es identificar la fuente de información y el formato (.xlsx, .csv, .pdf, .sav, etc.)
+
+> Ejemplo: Se quiere estudiar la pobreza y su relación con la educación en el área urbano y rural. 
+> Ejemplo: Se quiere estudiar la relación entre los votos obtenidos por las dos principales fuerzas en la última elección a presidente de Bolivia. 
+
+> ¿Qué fuente de datos se puede usar, en que formato esta disponible?. ¿Es disponible la información?
+
+### Fuentes
+
+  - *Registros en la web* (raspado web)
+  - *Censos:* Cobertura total (recolección estadística)
+  - **Encuestas**: Cobertura parcial (muestra), pueden ser *representativas* o basadas en estudios de caso, sondeos, etc. (recolección estadística)
+  - *Registros administrativos (tradicionales):* Es información que se genera en formularios, informes, etc. Dentro de las empresas y negocios cuya finalidad es administrativa. (no tienen un objetivo estadístico)
+
+### Formatos
+
+En general la información puede estar en cualquier formato, sin embargo, existen formatos orientados a bases de datos:
+
+  + csv (archivo plano): Separador y el nombre de las variables (primera fila)
+  + .xls, xlsx Excel. 
+  + (microdatos) .sav SPSS, .dta Stata
+  + json, xml, sql (gestores de bases de datos)
+  
+> Tarea: Descargar la encuesta a hogares 2021.
+
+Traer una base de datos externa y cargarla en el sistema de interés. En nuestro caso en R.
+
+Hay varias librerías útiles para la importación
+
+```{r}
+rm(list=ls())
+#install.packages("haven")
+#install.packages("labelled")
+#install.packages("readxl")
+library(haven)#SPSS, STATA
+library(labelled)#ETIQUETAS 
+library(readxl)#EXCEL
+###############################
+# CSV
+e20 <-read.csv("C:\\Users\\clases\\Downloads\\bd_raw\\votos_totales.csv", header = T, sep= "|")
+View(e20)
+#exportar 
+save(e20,file = "_bd/elecciones2020.RData")
+###cargar objetos RData
+rm(list = ls())
+load("_bd/elecciones2020.RData")
+#excel
+edu<-read_excel("C:\\Users\\clases\\Downloads\\bd_raw\\3020114.xlsx")
+
+edu2<-read_excel("C:\\Users\\clases\\Downloads\\bd_raw\\3020114.xlsx", 
+range = "A10:AH22")
+
+edu3<-read_excel("C:\\Users\\clases\\Downloads\\bd_raw\\3020114.xlsx",sheet = 2)
+#SPSS
+dd<-"C:\\Users\\clases\\Downloads\\bd_raw\\Base de datos\\"
+
+eh21de<-read_sav(paste0(dd,"EH2021_Defunciones.sav"))
+eh21di<-read_sav(paste0(dd,"EH2021_Discriminacion.sav"))
+eh21eq<-read_sav(paste0(dd,"EH2021_Equipamiento.sav"))
+eh21ga<-read_sav(paste0(dd,"EH2021_Gastos Alimentarios.sav"))
+eh21gna<-read_sav(paste0(dd,"EH2021_Gastos no Alimentarios.sav"))
+eh21pe<-read_sav(paste0(dd,"EH2021_Persona.sav"))
+eh21sa<-read_sav(paste0(dd,"EH2021_Seguridad Alimentaria.sav"))
+eh21vi<-read_sav(paste0(dd,"EH2021_Vivienda.sav"))
+save(eh21de,eh21di,eh21eq,eh21ga,eh21gna,eh21pe,eh21sa,eh21vi,
+     file="_bd/eh21.RData")
+```
+
+## Exploración
+
+Meta data de la dataset:
+
+  - **Población Objetivo:** Mesas electorales de las elecciones para presidente de 2020
+  - **Unidad de análisis:** Mesas electorales
+  - **Unidad de información:** Acta de la mesa
+  - **Unidades agregadas:** País, Departamento, Provincia, Municipio, Recinto
+  - **Cobertura espacial:** Toda Bolivia
+  - **Cobertura temporal:** 2020
+  - **Cobertura temática:** Resultados de apoyo electoral
+  - **Diseño estadístico:** Registro administrativo
+
+### Diccionario de variables
+
+Es un **listado de las variables** y sus características de *formato* y alguna *información adicional*. Lo mas importante es saber que variables son *cualitativas* y cuales *cuantitativas*.
+
+Cuando existen muchas bases de datos dentro de nuestro dataset, o cuando tenemos varias unidades agregadas es importante identificar la variable de identificación única de las unidades de análisis ($KEY$).
+
+```{r}
+rm(list=ls())
+#################
+#elecciones2020
+load("_bd/elecciones2020.RData")
+#nombres
+names(e20)
+#tipo
+str(e20)
+str(e20$NULOS)
+class(e20$NULOS)
+typeof(e20$NULOS)
+#KEY
+names(e20)[1:12]
+```
+
+### Nombre de las variables
+
+Recomendaciones para los nombres de variables:
+
+  - Usar solo mayúsculas o minúsculas
+  - Evitar los espacios
+  - Evitar iniciar con números, o que el nombre de la variable sea un número
+  - Evitar símbolos y caracteres, evitar los acentos
+  - El nombre de la variable debiera ser corto (3 a 10) e informativo
+  
+```{r}
+library(dplyr)#GRAMÁTICA DE DATOS
+#MAYUS, MINUS
+names(e20)<-toupper(names(e20))
+names(e20)<-tolower(names(e20))
+names(e20)
+#RENOMBRAR
+#R
+names(e20)[1]<-"ipais"
+names(e20)[2]<-"dpais"
+names(e20)[3:4]<-c("idep","ddep")
+#DPLYR PIPE ( %>% )
+e20<-e20 %>% rename(ipro=codigo.provincia)
+e20<-e20 %>% rename(dpro=nombre.provincia,
+                    imun=codigo.municipio,
+                    dmun=nombre.municipio)
+e20<-e20 %>% rename(irec=9,
+                    drec=10,
+                    imesa=11,
+                    dmesa=12)
+names(e20)
+```
+
+### Reportes básicos
+
+  - Tablas de frecuencia
+  - Promedios, medianas, Cuantiles
+  - Varianza, rango, etc
+  
+```{r}
+#R
+table(e20$ddep)
+prop.table(table(e20$ddep))*100
+#DPLYR
+e20 %>% group_by(ddep) %>% 
+  count(name="conteo")
+e20 %>% group_by(ddep,dpro) %>% count(name="conteo")
+
+e20 %>% group_by(ddep) %>% 
+  count(name="conteo") %>% arrange(conteo)
+
+e20 %>% group_by(ddep) %>% 
+  count(name="conteo") %>% arrange(-conteo)
+
+t1<-e20 %>% group_by(Departamento=ddep, Provincia=dpro) %>% count(name="conteo")
+head(t1)
+```
+  
+### Niveles de agregación
+
+La base de datos puede tener una unidad de investigación **elemental**, pero, puede tener también información de unidades de interés mas grandes, es decir; que agreguen a los unidades elementales.
+
+### Descripción univariada 
+
+El objetivo es conocer estadísticas básicas de cada variable.
+
+  + Cualitativas: Conteo, %
+  + Cuantitativas: tendencia central, variabilidad, medidas de forma, densidad.
+
+```{r}
+e20 %>% summarise(mean(cc),mean(mas.ipsp))
+
+e20 %>% summarise(cc=mean(cc),              mas=mean(mas.ipsp),
+                  median(cc))
+
+e20 %>% group_by(ddep) %>% summarise(cc=mean(cc),              mas=mean(mas.ipsp)) %>% arrange(mas)
+```
+
+## Filtrado y selección
+
+### Filtrado de observaciones
+
+El filtrado se refiere a seleccionar casos (filas) que cumplen una determinada condición. En la librería dplyr el comando filter se utiliza para esto.
+
+Para las condiciones en R se utilizan los operadores lógicos:
+
+  + Igualdad "=="
+  + Distinto "!="
+  + ó lógico "|"
+  + y lógico "&" 
+  + Negación "!"
+  + Desigualdad "<,>,>=,<="
+  + (Which) Múltiples condiciones (|) "%in%"
+
+```{r}
+library(dplyr)
+load("_bd/elecciones2020.RData")
+
+e20 %>% rename(ddep=Nombre.DEPARTAMENTO) %>% 
+  filter(ddep=="BENI" | ddep=="PANDO" ) %>% group_by(ddep) %>% summarise(MAS=mean(MAS.IPSP),CC=mean(CC))
+
+#BENI, PANDO, sANTA CRUZ, Y CHUQUISACA
+aux<-unique(e20$Nombre.DEPARTAMENTO)
+
+e20 %>% rename(ddep=Nombre.DEPARTAMENTO) %>% 
+  filter(ddep %in% aux[c(1,7:9)]) %>% group_by(ddep) %>% summarise(MAS=mean(MAS.IPSP),CC=mean(CC))
+```
+
+> Ejercicio
+
+1. Obtenga los votos totales para el MAS, CC y Creemos en las mesas donde el CC supero los 50 votos.
+
+```{r}
+e20 %>% filter(CC>50) %>% 
+  summarise(MAS=sum(MAS.IPSP),
+                  CC=sum(CC),
+           CREEMOS=sum(CREEMOS))
+```
+
+2. Para el ejercicio anterior presente el resultado a nivel de las 3 provincias con más votos validos
+
+```{r}
+e20 %>% group_by(Codigo.PROVINCIA) %>% summarise(val=sum(VALIDOS)) %>% arrange(-val)
+
+t1<-e20 %>% filter(Codigo.PROVINCIA %in% c(201,701,301)) %>% filter(CC>50) %>% 
+  group_by(Nombre.PROVINCIA) %>%
+  summarise(MAS=sum(MAS.IPSP),
+                  CC=sum(CC),
+           CREEMOS=sum(CREEMOS))
+
+e20 %>% filter(Codigo.PROVINCIA %in% c(201,701,301) & CC>50) %>% 
+  group_by(Nombre.PROVINCIA) %>%
+  summarise(MAS=sum(MAS.IPSP),
+                  CC=sum(CC),
+           CREEMOS=sum(CREEMOS))
+```
+
+### Selección de variables
+
+Simplemente se refiere a la selección de variables, este proceso se recomienda realizarlo antes del *modelo*, ya que libera *memoria* y *optimiza* los tiempos de *procesamiento*, además, nos permite enfocarnos en las variables de interés. En la librería dplyr el comando es select.
+
+```{r}
+e20a<-e20 %>% select(cc=CC,mas=MAS.IPSP,creemos=CREEMOS)
+
+e20a %>% summarise(mean(cc),mean(mas))
+
+plot(e20a)
+# a nivel de provincia
+t2<-e20 %>% group_by(Codigo.PROVINCIA,Nombre.PROVINCIA) %>% summarise(cc=sum(CC),mas=sum(MAS.IPSP),creemos=sum(CREEMOS)) %>% 
+ungroup()  %>% select(cc,mas,creemos)
+plot(t2)
+```
+
+## Transformación
+
+Se refiere a cambios en las variables o la base de datos. A nivel de las *variables* las transformaciones más comunes son:
+
+  - Adecuación de formatos
+  - Limpieza de texto
+  - Creación de variables
+  - Valores atípicos
+  - Valores perdidos
+
+### Adecuación de formatos
+
+Se refiere a cambiar la clase o el tipo de formato de una variable.
+
+  - as.factor, transforma una variable al tipo factor
+  - as.character, transforma una variable al tipo carácter-texto
+  - as.numeric, transforma una variable al tipo numérico
+  
+```{r}
+rm(list = ls())
+library(dplyr)
+
+load("_bd/elecciones2020.RData")
+str(e20)
+View(e20)
+mean(e20$Codigo.DEPARTAMENTO)
+
+e20<-e20 %>% mutate( idep=as.factor(Codigo.DEPARTAMENTO))
+
+e20 %>% select(Codigo.DEPARTAMENTO,idep) %>% View()
+
+mean(e20$idep)
+```
+
+$$votos_{MAS}=f(Departamento)$$
+  
+$$votos_{mas}=\beta_0+\beta_1*LP+\beta_2*CH+\ldots$$
+
+```{r}
+summary(lm(MAS.IPSP~idep,data = e20))
+```
+
+### Creación de variables
+
+Existen diferentes alternativas, estas normalmente deben estar orientadas a un indicador o para facilitar el manejo de alguna variable.
+
+```{r}
+e20<-e20 %>% mutate(v1=10, 
+               v2=BLANCOS+NULOS,
+               v3=(CC/VALIDOS)*100)
+
+e20 %>% select(v1, v2, v3, BLANCOS, NULOS,CC, VALIDOS) %>% View()
+
+hist(e20$v3)
+e20 %>% group_by(Nombre.DEPARTAMENTO) %>% 
+  summarise(
+    cc=mean(v3), 
+    mincc=min(v3),
+    maxcc=max(v3)
+    ) %>% arrange(-cc)
+
+is.numeric(e20$CC)
+is.numeric(e20$VALIDOS)
+is.numeric(e20$v3)
+```
+
+### Valores perdidos o valores *NAN*
+
+Se debe distinguir los siguientes casos:
+
+  - Cuando el valor no esta presente en el dataset por razones de filtro. Ejemplo: Los años de educación de personas menores de 5 años. El ingreso laboral de una persona que no trabaja
+  - Cuando el valor no este presente, pero debería estar. (No respuesta, rechazo)
+   
+Si el valor perdido es *aleatorio* se recomienda usar métodos de imputación u omitir los casos. En otro caso se recomienda usar métodos de imputación múltiples en la medida que sea posible. 
+
+Es posible, a partir de las transformaciones generar valores que no corresponde por ser indeterminados:
+
+  - log(-10) NaN
+  - log(0) -Inf
+  - 1/0 Inf
+  - 0/0 NaN
+  
+```{r}
+e20 %>% filter(is.nan(v3)==T) %>% View()
+
+e20 %>% filter(Codigo.MESA!=81288) %>% group_by(Nombre.DEPARTAMENTO) %>% 
+  summarise(
+    cc=mean(v3), 
+    mincc=min(v3),
+    maxcc=max(v3)
+    ) %>% arrange(-cc)
+
+e20 %>% filter(is.nan(v3)==F) %>% group_by(Nombre.DEPARTAMENTO) %>% 
+  summarise(
+    cc=mean(v3), 
+    mincc=min(v3),
+    maxcc=max(v3)
+    ) %>% arrange(-cc)
+```
+  
+Normalizar:
+
+$$Z=\frac{X-\bar{x}}{\sigma}$$
+
+```{r}
+e20<-e20 %>% mutate(nval=scale(VALIDOS))
+
+e20 %>% mutate(v4=log(nval)) %>% select(nval,v4) %>%  View()
+```
+
+### Valores atípicos
+
+  - Hacer la diferencia entre valores atípicos *univariantes* de los *multivariantes* 
+  - En lo univariante
+    + Transformación logarítmica
+    + Partición de la base de datos (**estables**, atípicos). Se puede utilizar los quantiles (p99, p01) existen otros algoritmos (bacon)
+  - En lo multivariante
+    + Componentes principales (detección). Primer componente.
+    + Métodos de agrupamiento (kcenter, "k")
+
+```{r}
+rm(list = ls())
+library(dplyr)
+library(haven)
+library(labelled)
+load("_bd/eh21.RData")
+names(eh21pe)
+
+eh21pe %>% group_by(s03a_01a) %>% count()
+
+eh21pe %>% group_by(x1=to_factor(s03a_01a)) %>% count()
+
+eh21pe %>% filter(is.na(s03a_01a)) %>% group_by(s01a_03) %>% count()
+
+var_label(eh21pe$s03a_01a)
+val_labels(eh21pe$s03a_01a)
+val_labels(eh21pe$s01a_02)
+
+var_label(eh21pe)
+
+summary(eh21pe$ylab)
+hist(eh21pe$ylab)
+boxplot(eh21pe$s01a_03)
+boxplot(eh21pe$ylab)
+boxplot(log(eh21pe$ylab))
+hist(eh21pe$ylab)
+hist(log(eh21pe$ylab))
+
+eh21pe<-eh21pe %>% 
+  mutate(lylab=log(ylab))
+```
+
+> Actividad
+Calcular el ingreso laboral por sexo y por departamento.
+
+```{r}
+#promedio de edad por sexo
+eh21pe %>% group_by(s01a_02) %>% summarise(mean(s01a_03))
+
+eh21pe %>% group_by(s01a_02) %>% summarise(ingreso=mean(ylab,na.rm=T))
+
+eh21pe %>% group_by(depto) %>% summarise(ingreso=mean(ylab,na.rm=T)) %>% arrange(-ingreso)
+
+quantile(eh21pe$ylab,na.rm = T, 
+         c(0.95,0.99))
+
+eh21pe %>% filter(ylab<12901) %>% group_by(s01a_02) %>% summarise(ingreso=mean(ylab,na.rm=T))
+
+eh21pe %>% filter(ylab<12901) %>% group_by(depto) %>% summarise(ingreso=mean(ylab,na.rm=T))
+
+eh21pe<-eh21pe %>% 
+  mutate(mujer=(s01a_02==2))
+
+eh21pe %>% group_by(depto) %>% 
+  summarise(pp=mean(mujer)*100)
+```
+
+### Uniendo bases de datos
+
+La unión de bases de datos se puede entender en dos direcciones:
+
+  + Se añaden casos (filas)
+  + Se añaden variables (columnas)
+
+Para apilar las bases de datos, se debe asegurar que estas tengan las mismas variables e información adicional.
+
+```{r}
+rm(liist=ls())
+library(haven)
+library(labelled)
+library(dplyr)
+load("_bd/eh21.RData")
+```
+
+> Actividad: Generar bases de datos sueltas para los departamentos del eje (LP, CB, SC). Para la base de datos de viviendas. (2min)
+
+```{r}
+val_labels(eh21vi$depto)
+lp<-eh21vi %>% filter(depto==2)
+cb<-eh21vi %>% filter(depto==3)
+sc<-eh21vi %>% filter(depto==7)
+```
+
+> Unir las tres bases de datos creadas anteriormente
+
+```{r}
+eje<-lp %>% bind_rows(cb) %>% bind_rows(sc)
+```
+
+> ¿Qué porcentaje de hogares tiene energía electrica? (8:00)
+  - Global
+  - Departamento
+  - Sexo del jefe/a del hogar
+  
+```{r}
+eh21vi %>% group_by(s07a_16) %>% count()
+
+eh21vi<-eh21vi %>% mutate(energia=(s07a_16==1))
+
+eh21vi %>% summarise(pp=mean(energia)*100)
+
+eh21vi %>% group_by(depto)%>%  summarise(pp=mean(energia)*100)
+
+unique(eh21vi$s07a_16)
+
+length(unique(eh21vi$folio))
+
+var_label(eh21pe)
+
+eh21pe %>% select(folio, s01a_02, s01a_05) %>% head()
+```
+
+> Obtener una base de datos de los jefes/as del hogar que incluya el sexo y folio
+
+```{r}
+aux<-eh21pe %>% filter(s01a_05==1) %>% select(folio,s01a_02)
+
+eh21vi<-eh21vi %>% left_join(aux)
+aux2<-eh21vi %>% right_join(aux)
+aux3<-eh21vi %>% inner_join(aux)
+
+eh21vi %>% group_by(sexo=s01a_02)%>%  summarise(pp=mean(energia)*100)
+```
+
+## Muestreo, estimación, error estándar y confiabilidad
+
+Según el tipo de estudio se deben calcular los indicadores tomando en cuenta el diseño detrás de la base de datos; cuando es un censo normalmente trabajamos con parámetros y los errores presentes tienden a ser "errores de no muestreo" o cobertura. De manera similar en los registros administrativos. En el caso de bases de datos de encuestas por muestreo *probabilístico* se cuenta adicionalmente con los errores de muestreo y se trabajan con estimaciones.
+
+### Diseño muestral
+
+$$P(.)=f(MM(U),X(Y))$$
+
+Una función de probabilidades
+
+### Estimación
+
+$$t_y=\sum_U y_k$$
+$$\mu_y=\frac{t_y}{N}$$
+Horvits-Thompson
+
+$$\hat{t}_y=\sum_s \frac{y_k}{\pi_k}$$
+Donde $\pi_k$ es la probabilidad de selección del individuo $k-ésimo$, que es dada por el diseño muestral.
+
+```{r}
+rm(list = ls())
+library(survey)
+library(srvyr)
+library(dplyr)
+library(haven)
+library(labelled)
+#install.packages("survey")
+#install.packages("srvyr")
+load("_bd/eh21.RData")
+eh21pe %>% summarise(mean(s01a_03))
+
+eh21pe %>% group_by(area) %>% summarise(conteo=n()) %>% 
+  mutate(pp=(conteo/sum(conteo))*100)
+
+eh21pe_s<-eh21pe %>% as_survey_design(
+  ids = upm,
+  strata =estrato,
+  weights = factor)
+
+eh21pe_s %>% summarise(
+  edad=survey_mean(s01a_03,
+          vartype =c("cv"))
+  )
+
+eh21pe_s %>% group_by(area) %>% summarise(N=survey_total())
+
+eh21pe_s %>% group_by(area) %>% summarise(N=survey_mean()*100)
+```
+
+> Actividad: Usando el diseño muestral
+
+- Calcular el % de pobreza en Bolivia por departamento y obtener los coeficientes de variación
+- Calcular el promedio de años de educación por sexo y área (para personas de 15 años o más)
+- Calcular el % de pobreza en Bolivia por departamento y sexo del jefe del hogar.
+
+```{r}
+eh21pe_s %>% group_by(depto) %>% summarise(pp=survey_mean(p0, na.rm=T, vartype="cv")*100)
+```
+
+## Aproximación Visual (Visualización)
+
+**Gramática de figuras**
+
+Al hacer un gráfico se debe definir 3 aspectos:
+
+  1. Información (dataset)
+  2. Estética (componentes)
+  3. Geometría 
+
+```{r}
+rm(list = ls())
+library(ggplot2) # gramática de gráficos
+library(haven)
+library(dplyr)
+library(labelled)
+load("_bd/eh21.RData")
+####figuras de origen R
+hist(eh21pe$s01a_03)
+boxplot(eh21pe$s01a_03)
+boxplot(eh21pe$s01a_03~eh21pe$area)
+boxplot(eh21pe$ylab)
+pie(prop.table(table(eh21pe$area))*100)
+barplot(prop.table(table(eh21pe$area))*100)
+####GGPLOT2
+ggplot(eh21pe, aes(x=s01a_03))+geom_boxplot()
+
+ggplot(eh21pe, aes(x=s01a_03))+geom_histogram()
+
+ggplot(eh21pe %>% filter(depto==9 & ylab <20000) , 
+  aes(x=s01a_03,                   y=aestudio,
+      col=as_factor(s01a_02),
+      size=ylab,
+      pch=as_factor(area)
+      )) +
+  geom_point() + facet_wrap(~as_factor(p0))
+
+library(plotly)
+
+g1<-ggplot(eh21pe %>% filter(depto==9), aes(s01a_03,ylab)) + geom_point()
+g1
+
+ggplotly(g1)
+
+ggplot(eh21pe , aes(aestudio, ylab, label=s01a_03)) + geom_label()
+
+t1<-eh21pe %>% group_by(depto) %>% summarise(p0=mean(p0,na.rm = T)*100) %>% arrange(p0)
+
+ggplot(t1,aes(as_factor(depto),p0))+ geom_bar(stat = "identity", fill="red",alpha=0.3)+ ylab("Pobreza Moderada") + xlab("Departamento") + ggtitle("Pobreza moderada por departamento, 2021")
+
+```
+
+
+
