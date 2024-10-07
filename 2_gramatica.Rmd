@@ -105,23 +105,40 @@ Cuando existen muchas bases de datos dentro de nuestro dataset, o cuando tenemos
 rm(list=ls())
 #################
 #elecciones2020
-load("_bd/elecciones2020.RData")
+load("_data/e20.RData")
 #nombres
 names(e20)
 #tipo
 str(e20)
-str(e20$NULOS)
+str(e20$Codigo.DEPARTAMENTO)
+class(e20$Nombre.PAIS)
+class(e20$VALIDOS)
 class(e20$NULOS)
+class(e20)
 typeof(e20$NULOS)
-#KEY
+#Variables de enlace / Variables de agregación
 names(e20)[1:12]
+load("_data/eh22.RData")
+library(haven)
+library(labelled)#etiquetas STATA/SPSS
+names(eh22p)
+var_label(eh22p)
+var_label(eh22p$s01a_02)
+var_label(eh22p$s03a_01a)
+var_label(eh22p$tipohogar)
+eh22p$tipohogar
+val_labels(eh22p$tipohogar)
+class(eh22p$tipohogar)
+
+is.numeric(eh22p$s01a_02)
+is.factor(eh22p$s01a_02)
 ```
 
 ### Nombre de las variables
 
 Recomendaciones para los nombres de variables:
 
-  - Usar solo mayúsculas o minúsculas
+  - Usar solo mayúsculas o *minúsculas*
   - Evitar los espacios
   - Evitar iniciar con números, o que el nombre de la variable sea un número
   - Evitar símbolos y caracteres, evitar los acentos
@@ -130,15 +147,19 @@ Recomendaciones para los nombres de variables:
 ```{r}
 library(dplyr)#GRAMÁTICA DE DATOS
 #MAYUS, MINUS
+#R 
 names(e20)<-toupper(names(e20))
 names(e20)<-tolower(names(e20))
 names(e20)
 #RENOMBRAR
-#R
+#R 
+names(e20)[1]<-"ipais"
 names(e20)[1]<-"ipais"
 names(e20)[2]<-"dpais"
 names(e20)[3:4]<-c("idep","ddep")
+
 #DPLYR PIPE ( %>% )
+#e20<-e20 %>% rename(Nuevo = Antiguo)
 e20<-e20 %>% rename(ipro=codigo.provincia)
 e20<-e20 %>% rename(dpro=nombre.provincia,
                     imun=codigo.municipio,
@@ -148,14 +169,36 @@ e20<-e20 %>% rename(irec=9,
                     imesa=11,
                     dmesa=12)
 names(e20)
+save(e20, file="_data/e20v1.RData")# ETL 
+
+eh22p<-eh22p %>% rename(edad=s01a_03)
+eh22p$edad
 ```
 
 ### Reportes básicos
 
-  - Tablas de frecuencia
+  - Tablas de frecuencia: Cualitativas
   - Promedios, medianas, Cuantiles
   - Varianza, rango, etc
   
+```{r}
+#R
+table(e20$ddep)
+table(eh22p$area)
+table(as_factor(eh22p$area))
+table(eh22p$depto , eh22p$area)
+table(as_factor(eh22p$depto) , as_factor(eh22p$area))
+#DPLYR
+e20 %>% count(ddep)
+tpro<-e20 %>% count(ddep, dpro)
+tmun<-e20 %>% count(ddep, dpro, dmun)
+
+eh22p %>% count(depto, s01a_02)
+eh22p %>% count(depto, sexo=s01a_02)
+
+eh22p %>% as_factor() %>% count(depto, sexo=s01a_02)
+```
+
 ### Niveles de agregación
 
 La base de datos puede tener una unidad de investigación **elemental**, pero, puede tener también información de unidades de interés mas grandes, es decir; que agreguen a los unidades elementales.
