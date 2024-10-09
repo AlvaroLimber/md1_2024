@@ -199,16 +199,86 @@ eh22p %>% count(depto, sexo=s01a_02)
 eh22p %>% as_factor() %>% count(depto, sexo=s01a_02)
 ```
 
+Reportes para variables cuantitativas
+
+```{r}
+rm(list = ls())
+library(haven)
+library(labelled)
+library(dplyr)
+load("_data/eh22.RData")
+load("_data/e20v1.RData")
+#R
+mean(e20$validos)
+median(e20$validos)
+var(e20$validos)
+sd(e20$validos)
+sd(e20$validos)/mean(e20$validos) # CV
+min(e20$validos)
+max(e20$validos)
+max(e20$validos)-min(e20$validos)#rango
+summary(e20$validos)
+#quantiles
+quantile(e20$validos, 0.25)
+quantile(e20$validos, c(0.2, 0.4, 0.6, 0.8))
+quantile(e20$validos, seq(0,1, 0.1))
+quantile(e20$validos, seq(0,1, 0.01))
+
+e20 %>% summarise(
+  media=mean(validos), mediana=median(validos), 
+  minimo=min(validos),
+  maximo=max(validos)) 
+
+e20 %>% summarise(
+  sd=sd(validos), 
+  varianza=var(validos))
+
+e20 %>% summarise(
+  q=quantile(validos, c(0.20, 0.4, 0.5, 0.75)))
+
+mean2<-function(x){
+  y<-sqrt(sum(x^2)/length(x))
+  return(y)
+}
+mean2(c(2,3,4,5))
+
+e20 %>% summarise(mean2(validos))
+e20 %>% summarise_at(
+  vars(adn:validos), mean
+  )
+e20 %>% summarise_at(
+  vars(adn:validos), sd
+  )
+```
+
+
 ### Niveles de agregación
 
 La base de datos puede tener una unidad de investigación **elemental**, pero, puede tener también información de unidades de interés mas grandes, es decir; que agreguen a los unidades elementales.
 
-### Descripción univariada 
+```{r}
+e20 %>% group_by(ddep) %>% summarise(
+  media=mean(validos), sd=sd(validos))
 
-El objetivo es conocer estadísticas básicas de cada variable.
+t1<-e20 %>% group_by(ddep, dpro) %>% summarise(
+  media=mean(validos), sd=sd(validos))
 
-  + Cualitativas: Conteo, %
-  + Cuantitativas: tendencia central, variabilidad, medidas de forma, densidad.
+t2<-e20 %>% group_by(ddep, dpro, dmun) %>% summarise_at(vars(adn:validos), sum)
+#EH 22
+eh22p %>% group_by(depto, area) %>% summarise(edad=mean(s01a_03))
+
+eh22p %>% group_by(departamento=as_factor(depto), area=as_factor(area)) %>% summarise(edad=mean(s01a_03))
+
+mean(eh22p$ylab, na.rm = T )
+table(is.na(eh22p$ylab))
+
+eh22p %>% group_by(area) %>% 
+  summarise(media=mean(ylab, na.rm = T), n(), nylab=sum(!is.na(ylab)) )
+
+t3<-eh22p %>% group_by(s01a_02) %>% 
+  summarise(media=mean(ylab, na.rm = T), n(), nylab=sum(!is.na(ylab)), 
+  th=mean(tothrs, na.rm = T))
+```
 
 ## Filtrado y selección
 
