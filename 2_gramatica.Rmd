@@ -312,18 +312,54 @@ e20 %>% filter(ddep=="BENI" & validos<20)
 
 e20 %>% filter(ddep=="LA PAZ") %>% summarise(val=mean(validos), mas=mean(mas.ipsp), cc=mean(cc))
 #El mismo resultado anterior para los departamentos del eje central (LP, CB, SC) y el resultado opuesto.
+e20 %>% filter(ddep=="LA PAZ" | ddep=="COCHABAMBA" | ddep=="SANTA CRUZ" ) %>% summarise(val=mean(validos), mas=mean(mas.ipsp), cc=mean(cc))
 
+e20 %>% filter( !(ddep=="LA PAZ" | ddep=="COCHABAMBA" | ddep=="SANTA CRUZ") ) %>% summarise(val=mean(validos), mas=mean(mas.ipsp), cc=mean(cc))
 
+aux<-unique(e20$ddep)
 
+e20 %>% filter(ddep %in% c("LA PAZ", "COCHABAMBA", "SANTA CRUZ") ) %>% summarise(val=mean(validos), mas=mean(mas.ipsp), cc=mean(cc))
+
+e20 %>% filter(ddep %in% aux[c(2, 3, 7)]) %>% summarise(val=mean(validos), mas=mean(mas.ipsp), cc=mean(cc))
+
+e20 %>% filter(ddep %in% aux[c(1,4,5,6,8,9)]) %>% summarise(val=mean(validos), mas=mean(mas.ipsp), cc=mean(cc))
 ```
   
-  
+> Ejemplos
+
+1. Para la EH, obtener el porcentaje de pobreza moderada y extrema en el área rural del departamento de ORURO
+
+```{r}
+eh22p %>% filter(area==2 & depto==4) %>% 
+  summarise(p0=mean(p0, na.rm = T)*100, 
+            pext0=mean(pext0, na.rm = T)*100)
+```
+
+2. Para la EH, obtener el promedio de edad en el área urbana del departamento de Pando
+
+```{r}
+rm(list = ls())
+load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/eh22.RData"))
+eh22p %>% filter(area==1 & depto==9) %>% 
+  summarise(edad=mean(s01a_03))
+
+eh22p$depto
+var_label(eh22p$depto)
+val_labels(eh22p$depto)
+var_label(eh22p)
+```
 
 > Ejercicio
 
 1. Obtenga los votos totales para el MAS, CC y Creemos en las mesas donde el CC supero los 50 votos.
 
 2. Para el ejercicio anterior presente el resultado a nivel de las 3 provincias con más votos validos
+
+3. Obtenga el total de votos nulos en los municipios que inicien con la letra M
+
+4. Obtenga el promedio de edad de jefas de hogar mujeres en el área rural
+
+5. Obtenga el promedio de años de educación y porcentaje de pobreza moderada en los hogares donde los jefes de hogar son personas entre 20 y 25 años de edad
 
 ### Selección de variables
 
