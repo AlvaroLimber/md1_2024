@@ -295,6 +295,29 @@ Para las condiciones en R se utilizan los operadores lógicos:
   + Negación "!"
   + Desigualdad "<,>,>=,<="
   + (Which) Múltiples condiciones (|) "%in%"
+  
+```{r}
+rm(list = ls())
+library(haven)
+library(labelled)
+library(dplyr)
+load("_data/e20v1.RData")
+load("_data/eh22.RData")
+table(e20$ddep)
+e20_lp<-e20 %>% filter(ddep=="LA PAZ")
+e20 %>% filter(ddep!="PANDO")
+e20 %>% filter(ddep=="BENI" | ddep=="ORURO")
+e20 %>% filter(ddep=="BENI" & ddep=="ORURO")
+e20 %>% filter(ddep=="BENI" & validos<20)
+
+e20 %>% filter(ddep=="LA PAZ") %>% summarise(val=mean(validos), mas=mean(mas.ipsp), cc=mean(cc))
+#El mismo resultado anterior para los departamentos del eje central (LP, CB, SC) y el resultado opuesto.
+
+
+
+```
+  
+  
 
 > Ejercicio
 
