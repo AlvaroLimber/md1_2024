@@ -1,0 +1,416 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+# Pre procesamiento - Gramática del manejo datos
+
+  - Recopilación
+  - Importación
+  - Exploración
+    * Diccionario de variables
+    * Niveles de agregación
+    * Descripción univariada 
+    * Identificando relaciones
+    * Aproximación Visual (Visualización)
+  - Filtrado y selección
+    * Filtrado de observaciones
+    * Selección de variables
+    * Pivot, Reshape
+    * Uniendo bases de datos
+  - Muestreo, estimación, error estándar y confiabilidad
+    * Diseño muestral
+    * Estimación
+    * Rendimiento
+  - Transformación
+    * Adecuación de formatos
+    * Limpieza de texto
+    * Creación de variables
+    * Valores atípicos
+    * Valores perdidos
+    
+## Recopilación
+
+  + Depende de la fuente de información de interés y la pregunta de investigación
+
+## Importación
+
+En el tema anterior, se vio con el uso de rvest la forma de conseguir datos de la web. 
+
+El primer paso que se debe seguir es identificar la fuente de información y el formato (.xlsx, .csv, .pdf, .sav, etc.)
+
+> Ejemplo: Se quiere estudiar la pobreza y su relación con la educación en el área urbano y rural. 
+> Ejemplo: Se quiere estudiar la relación entre los votos obtenidos por las dos principales fuerzas en la última elección a presidente de Bolivia.
+> Ejemplo: Qué producto tiene el mayor volúmen de exportación e importación? 
+
+> ¿Qué fuente de datos se puede usar, en que formato esta disponible?. ¿Es disponible la información?
+
+### Fuentes
+
+  - *Registros en la web* (raspado web)
+  - *Censos:* Cobertura total (recolección estadística)
+  - **Encuestas**: Cobertura parcial (muestra), pueden ser *representativas* o basadas en estudios de caso, sondeos, etc. (recolección estadística)
+  - *Registros administrativos (tradicionales):* Es información que se genera en formularios, informes, etc. Dentro de las empresas y negocios cuya finalidad es administrativa. (no tienen un objetivo estadístico)
+
+### Formatos
+
+En general la información puede estar en cualquier formato, sin embargo, existen formatos orientados a bases de datos:
+
+  + csv (archivo plano): Separador y el nombre de las variables (primera fila)
+  + .xls, xlsx Excel. 
+  + (microdatos) .sav SPSS, .dta Stata
+  + json, xml, sql (gestores de bases de datos)
+  
+```{r}
+rm(list=ls())
+library(readxl)
+library(foreign)# DBF
+e24<-read_xlsx("C:\\Users\\CLASES\\Downloads\\EXPORTACIONES ENE A AGO 2024p.xlsx")
+i24<-read_xlsx("C:\\Users\\CLASES\\Downloads\\IMPORTACIONES_ENE_AGO_2024p.xlsx")
+save(i24, e24, file = "_data/ie24.RData")
+#dataset de mapas
+asfi2018<-read.dbf("C:\\Users\\CLASES\\Downloads\\Localización de Entidades Bancarias en Bolivia_ 2018\\3365f39b-5240-4843-9378-7754c36d6dd5\\asfi2018geo.dbf")
+save(asfi2018, file="_data/asfi2018.RData")
+#CSV
+e20<-read.csv("C:\\Users\\CLASES\\Downloads\\votos_totales.csv", sep = "|")
+save(e20, file = "_data/e20.RData")
+```
+  
+> Tarea: Descargar la encuesta a hogares 2022.
+
+## Exploración
+
+Meta data de la dataset:
+
+> Elecciones 2020
+
+  - **Población Objetivo:** Mesas electorales de las elecciones para presidente de 2020
+  - **Unidad de análisis:** Mesas electorales
+  - **Unidad de información:** Acta de la mesa
+  - **Unidades agregadas:** País, Departamento, Provincia, Municipio, Recinto
+  - **Cobertura espacial:** Toda Bolivia
+  - **Cobertura temporal:** 2020
+  - **Cobertura temática:** Resultados de apoyo electoral
+  - **Diseño estadístico:** Registro administrativo
+
+> Tarea: Armar la meta data de la EH-2022.
+
+### Diccionario de variables
+
+Es un **listado de las variables** y sus características de *formato* y alguna *información adicional*. Lo mas importante es saber que variables son *cualitativas* y cuales *cuantitativas*.
+
+Cuando existen muchas bases de datos dentro de nuestro dataset, o cuando tenemos varias unidades agregadas es importante identificar la variable de identificación única de las unidades de análisis ($KEY$).
+
+```{r}
+rm(list=ls())
+#################
+#elecciones2020
+load("_data/e20.RData")
+#nombres
+names(e20)
+#tipo
+str(e20)
+str(e20$Codigo.DEPARTAMENTO)
+class(e20$Nombre.PAIS)
+class(e20$VALIDOS)
+class(e20$NULOS)
+class(e20)
+typeof(e20$NULOS)
+#Variables de enlace / Variables de agregación
+names(e20)[1:12]
+load("_data/eh22.RData")
+library(haven)
+library(labelled)#etiquetas STATA/SPSS
+names(eh22p)
+var_label(eh22p)
+var_label(eh22p$s01a_02)
+var_label(eh22p$s03a_01a)
+var_label(eh22p$tipohogar)
+eh22p$tipohogar
+val_labels(eh22p$tipohogar)
+class(eh22p$tipohogar)
+
+is.numeric(eh22p$s01a_02)
+is.factor(eh22p$s01a_02)
+```
+
+### Nombre de las variables
+
+Recomendaciones para los nombres de variables:
+
+  - Usar solo mayúsculas o *minúsculas*
+  - Evitar los espacios
+  - Evitar iniciar con números, o que el nombre de la variable sea un número
+  - Evitar símbolos y caracteres, evitar los acentos
+  - El nombre de la variable debiera ser corto (3 a 10) e informativo
+  
+```{r}
+library(dplyr)#GRAMÁTICA DE DATOS
+#MAYUS, MINUS
+#R 
+names(e20)<-toupper(names(e20))
+names(e20)<-tolower(names(e20))
+names(e20)
+#RENOMBRAR
+#R 
+names(e20)[1]<-"ipais"
+names(e20)[1]<-"ipais"
+names(e20)[2]<-"dpais"
+names(e20)[3:4]<-c("idep","ddep")
+
+#DPLYR PIPE ( %>% )
+#e20<-e20 %>% rename(Nuevo = Antiguo)
+e20<-e20 %>% rename(ipro=codigo.provincia)
+e20<-e20 %>% rename(dpro=nombre.provincia,
+                    imun=codigo.municipio,
+                    dmun=nombre.municipio)
+e20<-e20 %>% rename(irec=9,
+                    drec=10,
+                    imesa=11,
+                    dmesa=12)
+names(e20)
+save(e20, file="_data/e20v1.RData")# ETL 
+
+eh22p<-eh22p %>% rename(edad=s01a_03)
+eh22p$edad
+```
+
+### Reportes básicos
+
+  - Tablas de frecuencia: Cualitativas
+  - Promedios, medianas, Cuantiles
+  - Varianza, rango, etc
+  
+```{r}
+#R
+table(e20$ddep)
+table(eh22p$area)
+table(as_factor(eh22p$area))
+table(eh22p$depto , eh22p$area)
+table(as_factor(eh22p$depto) , as_factor(eh22p$area))
+#DPLYR
+e20 %>% count(ddep)
+tpro<-e20 %>% count(ddep, dpro)
+tmun<-e20 %>% count(ddep, dpro, dmun)
+
+eh22p %>% count(depto, s01a_02)
+eh22p %>% count(depto, sexo=s01a_02)
+
+eh22p %>% as_factor() %>% count(depto, sexo=s01a_02)
+```
+
+Reportes para variables cuantitativas
+
+```{r}
+rm(list = ls())
+library(haven)
+library(labelled)
+library(dplyr)
+load("_data/eh22.RData")
+load("_data/e20v1.RData")
+#R
+mean(e20$validos)
+median(e20$validos)
+var(e20$validos)
+sd(e20$validos)
+sd(e20$validos)/mean(e20$validos) # CV
+min(e20$validos)
+max(e20$validos)
+max(e20$validos)-min(e20$validos)#rango
+summary(e20$validos)
+#quantiles
+quantile(e20$validos, 0.25)
+quantile(e20$validos, c(0.2, 0.4, 0.6, 0.8))
+quantile(e20$validos, seq(0,1, 0.1))
+quantile(e20$validos, seq(0,1, 0.01))
+
+e20 %>% summarise(
+  media=mean(validos), mediana=median(validos), 
+  minimo=min(validos),
+  maximo=max(validos)) 
+
+e20 %>% summarise(
+  sd=sd(validos), 
+  varianza=var(validos))
+
+e20 %>% summarise(
+  q=quantile(validos, c(0.20, 0.4, 0.5, 0.75)))
+
+mean2<-function(x){
+  y<-sqrt(sum(x^2)/length(x))
+  return(y)
+}
+mean2(c(2,3,4,5))
+
+e20 %>% summarise(mean2(validos))
+e20 %>% summarise_at(
+  vars(adn:validos), mean
+  )
+e20 %>% summarise_at(
+  vars(adn:validos), sd
+  )
+```
+
+
+### Niveles de agregación
+
+La base de datos puede tener una unidad de investigación **elemental**, pero, puede tener también información de unidades de interés mas grandes, es decir; que agreguen a los unidades elementales.
+
+```{r}
+e20 %>% group_by(ddep) %>% summarise(
+  media=mean(validos), sd=sd(validos))
+
+t1<-e20 %>% group_by(ddep, dpro) %>% summarise(
+  media=mean(validos), sd=sd(validos))
+
+t2<-e20 %>% group_by(ddep, dpro, dmun) %>% summarise_at(vars(adn:validos), sum)
+#EH 22
+eh22p %>% group_by(depto, area) %>% summarise(edad=mean(s01a_03))
+
+eh22p %>% group_by(departamento=as_factor(depto), area=as_factor(area)) %>% summarise(edad=mean(s01a_03))
+
+mean(eh22p$ylab, na.rm = T )
+table(is.na(eh22p$ylab))
+
+eh22p %>% group_by(area) %>% 
+  summarise(media=mean(ylab, na.rm = T), n(), nylab=sum(!is.na(ylab)) )
+
+t3<-eh22p %>% group_by(s01a_02) %>% 
+  summarise(media=mean(ylab, na.rm = T), n(), nylab=sum(!is.na(ylab)), 
+  th=mean(tothrs, na.rm = T))
+```
+
+## Filtrado y selección
+
+### Filtrado de observaciones
+
+El filtrado se refiere a seleccionar casos (filas) que cumplen una determinada condición. En la librería dplyr el comando filter se utiliza para esto.
+
+Para las condiciones en R se utilizan los operadores lógicos:
+
+  + Igualdad "=="
+  + Distinto "!="
+  + ó lógico "|"
+  + y lógico "&" 
+  + Negación "!"
+  + Desigualdad "<,>,>=,<="
+  + (Which) Múltiples condiciones (|) "%in%"
+
+> Ejercicio
+
+1. Obtenga los votos totales para el MAS, CC y Creemos en las mesas donde el CC supero los 50 votos.
+
+2. Para el ejercicio anterior presente el resultado a nivel de las 3 provincias con más votos validos
+
+### Selección de variables
+
+Simplemente se refiere a la selección de variables, este proceso se recomienda realizarlo antes del *modelo*, ya que libera *memoria* y *optimiza* los tiempos de *procesamiento*, además, nos permite enfocarnos en las variables de interés. En la librería dplyr el comando es select.
+
+## Transformación
+
+Se refiere a cambios en las variables o la base de datos. A nivel de las *variables* las transformaciones más comunes son:
+
+  - Adecuación de formatos
+  - Limpieza de texto
+  - Creación de variables
+  - Valores atípicos
+  - Valores perdidos
+
+### Adecuación de formatos
+
+Se refiere a cambiar la clase o el tipo de formato de una variable.
+
+  - as.factor, transforma una variable al tipo factor
+  - as.character, transforma una variable al tipo carácter-texto
+  - as.numeric, transforma una variable al tipo numérico
+
+### Creación de variables
+
+Existen diferentes alternativas, estas normalmente deben estar orientadas a un indicador o para facilitar el manejo de alguna variable.
+
+### Valores perdidos o valores *NAN*
+
+Se debe distinguir los siguientes casos:
+
+  - Cuando el valor no esta presente en el dataset por razones de filtro. Ejemplo: Los años de educación de personas menores de 5 años. El ingreso laboral de una persona que no trabaja
+  - Cuando el valor no este presente, pero debería estar. (No respuesta, rechazo)
+   
+Si el valor perdido es *aleatorio* se recomienda usar métodos de imputación u omitir los casos. En otro caso se recomienda usar métodos de imputación múltiples en la medida que sea posible. 
+
+Es posible, a partir de las transformaciones generar valores que no corresponde por ser indeterminados:
+
+  - log(-10) NaN
+  - log(0) -Inf
+  - 1/0 Inf
+  - 0/0 NaN
+  
+Normalizar:
+
+$$Z=\frac{X-\bar{x}}{\sigma}$$
+
+### Valores atípicos
+
+  - Hacer la diferencia entre valores atípicos *univariantes* de los *multivariantes* 
+  - En lo univariante
+    + Transformación logarítmica
+    + Partición de la base de datos (**estables**, atípicos). Se puede utilizar los quantiles (p99, p01) existen otros algoritmos (bacon)
+  - En lo multivariante
+    + Componentes principales (detección). Primer componente.
+    + Métodos de agrupamiento (kcenter, "k")
+
+> Actividad: Calcular el ingreso laboral por sexo y por departamento.
+
+### Uniendo bases de datos
+
+La unión de bases de datos se puede entender en dos direcciones:
+
+  + Se añaden casos (filas)
+  + Se añaden variables (columnas)
+
+Para apilar las bases de datos, se debe asegurar que estas tengan las mismas variables e información adicional.
+
+> Actividad: Generar bases de datos sueltas para los departamentos del eje (LP, CB, SC). Para la base de datos de viviendas.
+
+> Unir las tres bases de datos creadas anteriormente
+
+> ¿Qué porcentaje de hogares tiene energía electrica?
+  - Global
+  - Departamento
+  - Sexo del jefe/a del hogar
+
+> Obtener una base de datos de los jefes/as del hogar que incluya el sexo y folio
+
+## Muestreo, estimación, error estándar y confiabilidad
+
+Según el tipo de estudio se deben calcular los indicadores tomando en cuenta el diseño detrás de la base de datos; cuando es un censo normalmente trabajamos con parámetros y los errores presentes tienden a ser "errores de no muestreo" o cobertura. De manera similar en los registros administrativos. En el caso de bases de datos de encuestas por muestreo *probabilístico* se cuenta adicionalmente con los errores de muestreo y se trabajan con estimaciones.
+
+### Diseño muestral
+
+$$P(.)=f(MM(U),X(Y))$$
+
+Una función de probabilidades
+
+### Estimación
+
+$$t_y=\sum_U y_k$$
+$$\mu_y=\frac{t_y}{N}$$
+Horvits-Thompson
+
+$$\hat{t}_y=\sum_s \frac{y_k}{\pi_k}$$
+Donde $\pi_k$ es la probabilidad de selección del individuo $k-ésimo$, que es dada por el diseño muestral.
+
+> Actividad: Usando el diseño muestral
+
+- Calcular el % de pobreza en Bolivia por departamento y obtener los coeficientes de variación
+- Calcular el promedio de años de educación por sexo y área (para personas de 15 años o más)
+- Calcular el % de pobreza en Bolivia por departamento y sexo del jefe del hogar.
+
+## Aproximación Visual (Visualización)
+
+**Gramática de figuras**
+
+Al hacer un gráfico se debe definir 3 aspectos:
+
+  1. Información (dataset)
+  2. Estética (componentes)
+  3. Geometría 

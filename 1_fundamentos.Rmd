@@ -393,14 +393,110 @@ set.seed(841)#semilla aleatoria
 v9<-runif(20, 0,100)
 v10<-v9>50
 # matriz nxm
-
-# array 
+#matrix( vector, filas , columnas)
+m1<-matrix(c(4,5,6,8,9,6,3,4,8,9,8,9), 4, 3)
+m2<-matrix(1:25, 5, 5)
+m1*5
+m1^2
+2^m1
+t(m1)# transpuesta
+m1*m1
+dim(m1)
+m3<- m1 %*% t(m1)
+det(m3)
+solve(m3)#inversa
+m4<-matrix(c(3,7,17,9),2,2)
+det(m4)
+solve(m4)
+solve(m4)%*%m4
+m2>17
+#indexación
+v1<-m1[ 2, ]
+v1[3]
+m1[,c(2,3)]
+m1[2, c(2, 3)]
+m1[-3 , ]
+m1[-c(1,4) , -2]
+# array nxmxpxqxrxs...
+array(1:27, c(3,3,3))
+array(1:81, c(3,3,3,3))
 ```
   
-  - Heterogéneas
+  - Heterogéneas: Pueden contener elementos de distintas clase
+    * *dataframe*: Marco de datos, cada columna es un vector y puede combinar distintas clases de vector. Tipicamente, las filas son observaciones y las columnas son variables.
+    * *Lista*: Es una estructura que puede contener a múltiples objetos de diferentes tamaños y características.
 
-### Funciones en R
+```{r}
+bd<-data.frame(edad=c(20, 20, 20,22,20,20),
+           nombre=c("Valentina", "Josias", "Nayeli", "Maykel", "Ronald", "Diago"), 
+           hermano=c(T,T,T,T,T,T))
+str(bd)
+iris
+View(USArrests)
+
+l1<-list(bd, m1, v1, bd, iris, USArrests)
+str(l1)
+l2<-list(bd, m1, l1)
+```
+
+### Funciones en R (crear comandos)
+
+Una función en R permite generar un orden de secuencias con un objetivo. 
+
+$$f(x)=y$$
+
+```{r}
+media<-function(v){
+  y<-sum(v)/length(v)
+  return(y)
+}
+media(c(4,5,7,9))
+mean(c(4,5,7,9))
+```
+
+> Actividad, crear una función que calcule la media cuadrática a partir de un vector
+
+```{r}
+
+v<-c(4,5,7,9)
+v^2
+v*v
+aux<-v**2
+N<-length(v)
+aux1<-sum(aux)/N
+aux1**0.5
+sqrt(aux1)
+
+mc<-function(v){
+  aux<-v**2
+  N<-length(v)
+  aux1<-sum(aux)/N
+  y<-sqrt(aux1)
+  return(y)
+}
+mc(c(4,5,7,9))
+
+mc2<-function(x){
+  return(sqrt(sum(x**2)/length(x)))
+}
+mc2(c(4,5,7,9))
+```
+
 ### Loops, funciones de programación
+
+  - for: Un bucle con un ciclo definido
+  - while: Un bucle con un ciclo condicional
+  - if: Definir condiciones
+  
+```{r}
+for(i in 1:10){
+  print(i*2)
+}
+
+for(i in c(2,5,8)){
+  print(i)
+}
+```
 
 ## Scraping Web
 
@@ -421,7 +517,13 @@ Siguiendo a [@Iacus2015] que establece cinco pasos al momento de decidir recopil
 5. ¡Toma una decisión! Elija la fuente de datos que le parezca más adecuada, *documente* los motivos de la decisión y comience con los preparativos para la *recopilación*. Si es factible, recopile datos de *varias fuentes* para validar las fuentes de datos. Muchos problemas y beneficios de varias *estrategias de recopilación* de datos salen a la luz solo después de la recopilación real.
 
 > Actividad (10 min): Buscar artículos de investigación (paper) que usen el web scraping. 
-Fuente de datos, objetivo, método.
+Fuente de datos, objetivo, método. 7:55
+
+  - Título del paper:
+  - url: 
+  - Fuente de datos: 
+  - Objetivo: 
+  - Método: 
     
 ### Tecnologías de diseminación, extracción y almacenamiento Web
 
@@ -447,7 +549,7 @@ library(xtable)
 findPackage(c("API","scrape"),limit.results=-1)
 ```
 
-> Actividad 2
+> Actividad 2. (8:20)
 
 Siguiendo los 5 pasos mencionados anteriormente, defina un tema de interés.
 
@@ -473,8 +575,8 @@ Rvest es parte del universo **tidyverse** y esta orientada al scrape de páginas
 
 ```{r,eval=F}
 #desde CRAN
-install.packages("rvest")
-install.packages("dplyr")
+install.packages("rvest")#scrape
+install.packages("dplyr")#manejo del dataset
 #la versión en desarrollo desde github
 devtools::install_github("tidyverse/rvest")
 ```
@@ -528,30 +630,44 @@ aux1[[1]] %>% View()
 rm(list=ls())
 library(rvest)
 library(xml2)
+library(dplyr)
 #######################
 www<-"https://www.asfi.gob.bo/index.php/mv-estadisticas/mv-boletines-estadisticos.html"
 asfi<-read_html(www)
+
 reportes<-html_nodes(asfi,"td")
-#reportes<-asfi %>% html_nodes("td")
+reportes<-asfi %>% html_nodes("td")
+
+aux<-reportes %>% html_nodes("a") %>% html_attr("href")
 aux<-html_attr(html_nodes(reportes,"a"),"href")
+
 #aux<-reportes %>% html_nodes("a") %>% html_attr("href")
 aux1<-paste0("https://www.asfi.gob.bo",aux)
+
+grep("u" , c("Hola", "Chau"))
 pp<-grep(".xlsx",aux1)
 aux2<-aux1[pp]
+aux2[1]
 
 download.file(aux2[1] , "_data/enero2024.xlsx", mode = "wb")
+
+for(i in 1:10){
+  print(i)
+  print("hola")
+}
+length(aux2)
 for(i in 1:length(aux2)){
   print(i)
-  nombre<-paste0("_data/boletin/bol_",i,".xlsx")
-  download.file(aux2[i],nombre, mode = "wb")
+  nombre<-paste0("_data/bol_",i,".xlsx")
+  download.file(aux2[i], nombre, mode = "wb")
 }
 ```
 
 ### Ejemplo: armar una base de datos de una tienda digital
 
-  + Objetivo: Monitoreo de los precios de venta de casas en los departamentos del eje central
-  + Fuentes: ultracasas, infocasas
-    - fuente, precio, zona, superficie, departamento
+  + Objetivo: Monitoreo de los precios de *venta de casas* en los departamentos del *eje central*
+  + Fuentes: ultracasas, *infocasas*
+    - fuente, precio, *zona*, superficie, departamento
     
 ```{r}
 rm(list=ls())
@@ -561,19 +677,22 @@ library(dplyr)
 www<-"https://www.infocasas.com.bo/venta/casas/la-paz/pagina1"
 ####base de datos
 infocasas<-read_html(www)
-aux<-html_nodes(infocasas,".lc-dataWrapper")
+aux<-infocasas %>% html_nodes(".lc-dataWrapper")
 #zona
-zona<-html_text2(html_nodes(aux, ".lc-location"))
+zona<-aux %>% html_nodes(".lc-location") %>% html_text2()
+#zona<-html_text2(html_nodes(aux, ".lc-location"))
 #precio
-precio<-html_text2(html_nodes(aux,".lc-price"))
+precio<-aux %>% html_nodes(".lc-price") %>% html_text2()
+#precio<-html_text2(html_nodes(aux,".lc-price"))
 #superficie
-superficie<-html_text2(html_nodes(aux,".lc-typologyTag"))
-bd<-data.frame(zona,precio,superficie, depto="La Paz",fuente="infocasas")
+superficie<-aux %>% html_nodes(".lc-typologyTag") %>% html_text2()
+#superficie<-html_text2(html_nodes(aux,".lc-typologyTag"))
+bd<-data.frame(zona, precio, superficie, depto="La Paz",fuente="infocasas")
 ###############################
 #recolección de más páginas
 www<-"https://www.infocasas.com.bo/venta/casas/la-paz/pagina"
 bd<-NULL
-for(i in 1:23){
+for(i in 1:22){
   print(i)
   infocasas<-read_html(paste0(www,i))  
   aux<-html_nodes(infocasas,".lc-dataWrapper")
@@ -587,6 +706,22 @@ for(i in 1:23){
   bd<-bd %>% bind_rows(bdaux)
 }
 bd %>% View()
+
+##Cochabamba
+www<-"https://www.infocasas.com.bo/venta/casas/cochabamba/pagina"
+for(i in 1:27){
+  print(i)
+  infocasas<-read_html(paste0(www,i))  
+  aux<-html_nodes(infocasas,".lc-dataWrapper")
+  #zona
+  zona<-html_text2(html_nodes(aux, ".lc-location"))
+  #precio
+  precio<-html_text2(html_nodes(aux,".lc-price"))
+  #superficie
+  superficie<-html_text2(html_nodes(aux,".lc-typologyTag"))
+  bdaux<-data.frame(zona,precio,superficie, depto="Cochabamba", fuente="infocasas")
+  bd<-bd %>% bind_rows(bdaux)
+}
 ```
 
 ## APIs
