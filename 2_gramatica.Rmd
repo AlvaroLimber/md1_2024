@@ -363,11 +363,29 @@ var_label(eh22p)
 
 ### Selección de variables
 
-Simplemente se refiere a la selección de variables, este proceso se recomienda realizarlo antes del *modelo*, ya que libera *memoria* y *optimiza* los tiempos de *procesamiento*, además, nos permite enfocarnos en las variables de interés. En la librería dplyr el comando es select.
+Simplemente se refiere a la selección de variables, este proceso se recomienda realizarlo antes del *modelo*, ya que libera *memoria* y *optimiza* los tiempos de *procesamiento*, además, nos permite *enfocarnos* en las variables de interés. En la librería dplyr el comando es select.
+
+```{r}
+rm(list = ls())
+library(haven)
+library(labelled)
+library(dplyr)
+load("_data/e20v1.RData")
+load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/eh22.RData"))
+#Selección
+b1<-e20 %>% select(idep, ipro, imun, inscritos, validos, nulos)
+b2<-e20 %>% select(ipais:dmesa, validos, nulos, blancos)
+b3<-e20 %>% select(1:3,25)
+b4<-e20 %>% select(starts_with("i"), validos)
+
+e20 %>% select(ddep, validos) %>% group_by(ddep) %>% summarise(total=sum(validos)) %>% arrange(-total) 
+
+e20 %>% group_by(ddep) %>% summarise(sum(validos))
+```
 
 ## Transformación
 
-Se refiere a cambios en las variables o la base de datos. A nivel de las *variables* las transformaciones más comunes son:
+Se refiere a cambios en las *variables* o la *base de datos*. A nivel de las *variables* las transformaciones más comunes son:
 
   - Adecuación de formatos
   - Limpieza de texto
@@ -379,13 +397,78 @@ Se refiere a cambios en las variables o la base de datos. A nivel de las *variab
 
 Se refiere a cambiar la clase o el tipo de formato de una variable.
 
-  - as.factor, transforma una variable al tipo factor
-  - as.character, transforma una variable al tipo carácter-texto
-  - as.numeric, transforma una variable al tipo numérico
+  - *as.factor*, transforma una variable al tipo factor
+  - *as.character*, transforma una variable al tipo carácter-texto
+  - *as.numeric*, transforma una variable al tipo numérico
+  
+```{r}
+mean(as.character(e20$idep))
+
+e20<-e20 %>% mutate(idep=as.character(idep))
+class(e20$idep)
+e20<-e20 %>% mutate(idep=as.numeric(idep))
+class(e20$idep)
+as.numeric(c(1,2,3,"hola"))
+as.character(c(1,2,3,"hola"))
+
+e20<-e20 %>% mutate(ddep=as.factor(ddep))
+class(e20$ddep)
+mean(e20$ddep)
+summary(e20$ddep)
+summary(e20)
+
+e20<-e20 %>% mutate(ipais=as.factor(ipais),
+               idep=as.factor(idep),
+               ipro=as.factor(ipro),
+               imun=as.factor(imun)
+               )
+b1<-e20 %>% select(ipais:imesa) %>% mutate_all(as.factor)
+
+e20<-e20 %>% mutate_at(vars(ipais:imesa),as.factor)
+```
+
+### Limpieza de texto
+
+```{r}
+aux<-unique(as.character(e20$dmun))
+toupper(aux)
+tolower(aux)
+gsub(" ","",aux )
+gsub("Ñ","N",aux )
+gsub("É","E",aux )
+```
 
 ### Creación de variables
 
-Existen diferentes alternativas, estas normalmente deben estar orientadas a un indicador o para facilitar el manejo de alguna variable.
+Existen diferentes alternativas, estas normalmente deben estar orientadas a un indicador o para facilitar el manejo de alguna variable. (*INGENIERIA DE CARACTERÍSTICAS*).
+
+```{r}
+e20<-e20 %>% mutate(x1=1)
+e20<-e20 %>% mutate(x2=nulos+blancos)
+e20<-e20 %>% mutate(x3=(cc>mas.ipsp))
+
+e20 %>% group_by(ddep) %>% summarise(mean(x3)*100)
+
+e20 %>% mutate(x4=(nulos>cc)) %>% group_by(ddep) %>% summarise(mean(x4)*100)
+```
+
+Uno de los objetivos es crear nuevas variables, orientadas a indicadores. 
+
+> Ejercicio: Para la encuesta a hogares. Obtener el porcentaje de:
+  - % de hogares con jefas de hogar mujeres
+  - % de personas con 17 o más años de educación (para personas de 15 años o más)
+  - % de hogares con adultos mayores (>=60)
+  - % de mesas donde los votos validos son diferentes a la suma de todos los partidos. 
+  
+```{r}
+#2
+eh22p %>% filter(s01a_03>=15) %>% 
+  mutate(edu=(aestudio>=17)) %>% summarise(pp=mean(edu)*100)
+
+eh22p %>% filter(s01a_03>=15) %>% 
+  mutate(edu=(aestudio>=17)) %>% group_by(s01a_02) %>%  summarise(pp=mean(edu)*100)
+```
+  
 
 ### Valores perdidos o valores *NAN*
 
