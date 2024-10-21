@@ -461,14 +461,26 @@ Uno de los objetivos es crear nuevas variables, orientadas a indicadores.
   - % de mesas donde los votos validos son diferentes a la suma de todos los partidos. 
   
 ```{r}
+rm(list = ls())
+library(haven)
+library(labelled)
+library(dplyr)
+load("_data/e20v1.RData")
+load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/eh22.RData"))
+#1
+eh22p %>% select(folio, nro, s01a_02, s01a_05) %>% filter(s01a_05==1) %>% mutate(mujer=(s01a_02==2)) %>% summarise(Y=mean(mujer)*100)
 #2
 eh22p %>% filter(s01a_03>=15) %>% 
   mutate(edu=(aestudio>=17)) %>% summarise(pp=mean(edu)*100)
 
 eh22p %>% filter(s01a_03>=15) %>% 
   mutate(edu=(aestudio>=17)) %>% group_by(s01a_02) %>%  summarise(pp=mean(edu)*100)
+
+#3 
+eh22p %>% select(folio, nro, s01a_03) %>% mutate(am=(s01a_03>=60)) %>% group_by(folio) %>% summarise(am=max(am)) %>% summarise(X=mean(am)*100)
+
+eh22p %>% select(folio, nro, s01a_03) %>% mutate(am=(s01a_03>=60)) %>% group_by(folio) %>% mutate(am=max(am)) %>% filter(nro==1) %>% ungroup() %>%  summarise(X=mean(am)*100)
 ```
-  
 
 ### Valores perdidos o valores *NAN*
 
@@ -485,10 +497,16 @@ Es posible, a partir de las transformaciones generar valores que no corresponde 
   - log(0) -Inf
   - 1/0 Inf
   - 0/0 NaN
-  
-Normalizar:
 
-$$Z=\frac{X-\bar{x}}{\sigma}$$
+> Promedio de ingresos labores por área y el promedio de años de educación
+
+```{r}
+eh22p %>% group_by(area) %>% summarise(ylab=mean(ylab), aestudio= mean(aestudio))
+
+eh22p %>% group_by(area) %>% summarise(ylab=mean(ylab, na.rm = T), aestudio= mean(aestudio, na.rm = T),,n=n() )
+
+eh22p %>% select(area, ylab, aestudio) %>% na.omit() %>% group_by(area) %>% summarise(ylab=mean(ylab), aestudio= mean(aestudio),n=n() ) 
+```
 
 ### Valores atípicos
 
@@ -500,7 +518,13 @@ $$Z=\frac{X-\bar{x}}{\sigma}$$
     + Componentes principales (detección). Primer componente.
     + Métodos de agrupamiento (kcenter, "k")
 
-> Actividad: Calcular el ingreso laboral por sexo y por departamento.
+```{r}
+boxplot(eh22p$ylab)
+boxplot(log(eh22p$ylab))
+
+hist(eh22p$ylab)
+hist(log(eh22p$ylab))
+```
 
 ### Uniendo bases de datos
 
