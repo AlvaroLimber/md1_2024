@@ -530,21 +530,63 @@ hist(log(eh22p$ylab))
 
 La unión de bases de datos se puede entender en dos direcciones:
 
-  + Se añaden casos (filas)
-  + Se añaden variables (columnas)
+  + Se añaden casos (filas); apilar, append
+  + Se añaden variables (columnas); record linkage
 
 Para apilar las bases de datos, se debe asegurar que estas tengan las mismas variables e información adicional.
 
-> Actividad: Generar bases de datos sueltas para los departamentos del eje (LP, CB, SC). Para la base de datos de viviendas.
-
-> Unir las tres bases de datos creadas anteriormente
-
-> ¿Qué porcentaje de hogares tiene energía electrica?
+> Actividad (*10 minutos/ 8:13*):
+> 1) Generar bases de datos sueltas para los departamentos del eje (LP, CB, SC). Para la base de datos de viviendas de la EH.
+> 2) Unir las tres bases de datos creadas anteriormente
+> 3) ¿Qué porcentaje de hogares tiene energía electrica?
   - Global
   - Departamento
-  - Sexo del jefe/a del hogar
+  - Sexo del jefe/a del hogar (Record linkage)
+> 4) Obtener una base de datos de los jefes/as del hogar que incluya el sexo, folio, nro de miembros, si el piso de la vivienda es de tierra (Record linkage)
 
-> Obtener una base de datos de los jefes/as del hogar que incluya el sexo y folio
+```{r}
+rm(list = ls())
+library(haven)
+library(labelled)
+library(dplyr)
+load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/eh22.RData"))
+#1)
+lp<-eh22v %>% filter(depto==2)#la paz
+cb<-eh22v %>% filter(depto==3)#cochabamba
+sc<-eh22v %>% filter(depto==7)#santa cruz
+#2) apilar, append
+bd<-rbind(lp, cb, sc) #R
+bd1<-lp %>% bind_rows(cb) %>% bind_rows(sc) #DPLYR
+bd1 %>% count(depto)
+#3) Qué porcentaje de hogares tiene energía eléctrica?
+#  - Global
+#  - Departamento
+#  - Sexo del jefe/a del hogar (Record linkage)
+var_label(eh22v)
+val_labels(eh22v$s06a_12)
+table(eh22v$s06a_12)
+# global muestra
+eh22v %>% mutate(energia=(s06a_12==1)) %>% summarise(energia=mean(energia)*100)
+# departamento
+eh22v %>% mutate(energia=(s06a_12==1)) %>% group_by(depto)%>%  summarise(energia=mean(energia)*100)
+# Sexo del jefe/a del hogar (Record linkage)
+A<-eh22p %>% select(folio, s01a_05, s01a_02) %>% filter(s01a_05==1) 
+B<-eh22v %>% mutate(energia=(s06a_12==1)) %>% select(folio, energia)
+
+AB<-A %>% inner_join(B)
+A %>% left_join(B)
+A %>% right_join(B)
+A %>% full_join(B)
+AB %>% group_by(s01a_02) %>% summarise(energia=mean(energia)*100)
+
+eh22v %>% mutate(energia=(s06a_12==1)) %>% select(folio, energia) %>% inner_join(eh22p %>% select(folio, s01a_05, s01a_02) %>% filter(s01a_05==1)) %>% group_by(s01a_02) %>% summarise(energia=mean(energia)*100)
+#> 4) Obtener una base de datos de los jefes/as del hogar que incluya el sexo, folio, nro de miembros, si el piso de la vivienda es de tierra (Record linkage) (TAREA)
+
+#5) Explorar el dataset de importaciones y exportaciones e intentar generar un saldo comercial a nivel de producto (NANDINA) TAREA
+rm(list=ls())
+load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/ie24.RData"))
+```
+
 
 ## Muestreo, estimación, error estándar y confiabilidad
 
