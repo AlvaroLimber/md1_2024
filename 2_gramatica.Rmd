@@ -607,11 +607,52 @@ Horvits-Thompson
 $$\hat{t}_y=\sum_s \frac{y_k}{\pi_k}$$
 Donde $\pi_k$ es la probabilidad de selección del individuo $k-ésimo$, que es dada por el diseño muestral.
 
+```{r}
+rm(list = ls())
+library(dplyr)
+library(haven)
+library(labelled)
+library(survey)
+library(srvyr)
+load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/eh22.RData"))
+# Identificando las variables del diseño
+eh22p %>% select(upm, estrato, factor) %>% tail(20)
+sum(eh22p$factor)
+sum(eh22v$factor)
+# Definiendo el diseño muestral
+eh22p_sd <- eh22p %>% as_survey_design(ids=upm, strata = estrato, weights = factor)
+# Estimaciones
+
+eh22p %>% count(depto)
+eh22p_sd %>% survey_count(depto)
+eh22p_sd %>% survey_count(depto, vartype = c("cv","se"))
+
+eh22p_sd %>% mutate(nna=s01a_03<18) %>% summarise(survey_mean(nna))
+```
+
 > Actividad: Usando el diseño muestral
 
 - Calcular el % de pobreza en Bolivia por departamento y obtener los coeficientes de variación
+
+```{r}
+eh22p %>% group_by(depto) %>% summarise(p0=mean(p0, na.rm=T)*100)
+
+eh22p_sd %>% group_by(depto) %>% summarise(p0=survey_mean(p0, na.rm=T, vartype=c("cv"))*100)
+
+t1<-eh22p_sd %>% group_by(depto, area, s01a_02) %>% summarise(p0=survey_mean(p0, na.rm=T, vartype=c("cv"))*100)
+```
+
 - Calcular el promedio de años de educación por sexo y área (para personas de 15 años o más)
 - Calcular el % de pobreza en Bolivia por departamento y sexo del jefe del hogar.
+
+> Tarea: Indagar el uso del comapndo pivot
+
+```{r}
+library(tidyr)
+pivot_longer()
+pivot_wider()
+```
+
 
 ## Aproximación Visual (Visualización)
 
