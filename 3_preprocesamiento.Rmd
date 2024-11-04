@@ -1,0 +1,568 @@
+# Técnicas de pre procesamiento
+
+## Reducción de dimensionalidad
+
+### Recordatorio sobre varianzas
+
+$$S_y^2=\frac{\sum (y_i-\bar{y})^2}{n-1}$$
+
+$$S_{xy}=\frac{\sum (y_i-\bar{y})(x_i-\bar{x})}{n-1}$$
+
+$$\rho_{xy}=\frac{S_{xy}}{S_x S_y}\quad -1\leq \rho_{xy} \leq1$$
+
+### Componentes Principales 
+
+El método de Análisis de Componentes Principales se ocupa de explicar la estructura de varianza y covarianza de un grupo de variables a través de unas pocas combinaciones lineales de este grupo de variables. En general sus objetivos son (1) la *reducción de los datos* y (2) la *interpretación*.
+
+Algebráicamente, los componentes principales son combinaciones lineales de $p$ variables aleatorias $X_1$, $X_2$, \ldots, $X_p$. Geométricamente, estas combinaciones lineales representan la selección de un nuevo sistema de coordenadas obtenido por rotación de del sistema original con $X_1$, $X_2$, \ldots, $X_p$ como los ejes de coordenadas. Los nuevos ejes representan la dirección con la máxima variabilidad y provee una simple y más parsimoniosa descripción de la estructura de la covarianza.
+
+Los componentes principales dependen únicamente de la matriz de covarianza $\Sigma$ o la matriz de correlaciones $\rho$ (Matriz estandarizada de $\Sigma$) de $X_1$, $X_2$, \ldots, $X_p$. Su desarrollo no requiere de ningún supuesto de normalidad multivariada, sin embargo, componentes principales derivados de poblaciones normales multivariantes tienen un gran uso en la interpretación en términos de elipsoide de densidad constante.
+
+Sea la matriz $\mathbf{X}$ compuesta de $p$ vectores aleatorios $\mathbf{X}=[X_1, X_2, \ldots, X_p ]$ que tiene la matriz de covarianza $\Sigma$ con valores propios $\lambda_1 \geq \lambda_2 \geq \ldots \geq \lambda_p \geq 0$.
+
+Considere la combinación lineal:
+
+$$
+\begin{array}{rrr}
+Y_1		= & a_1^{'} \mathbf{X} = & a_{11} X_1 + a_{12} X_2 + \ldots a_{1p} X_p \\
+Y_2		= & a_2^{'} \mathbf{X} = & a_{21} X_1 + a_{22} X_2 + \ldots a_{2p} X_p\\
+\vdots	= & \vdots & \vdots \\
+Y_p		= & a_p^{'} \mathbf{X} = & a_{p1} X_1 + a_{p2} X_2 + \ldots a_{pp} X_p\\
+\end{array}
+$$
+
+Equivalente a:
+
+$$
+\mathbf{Y}= \left[  
+\begin{array}{c}
+Y_1\\
+Y_2\\
+\vdots\\
+Y_p\\
+\end{array}
+\right] = \left[  
+\begin{array}{cccc}
+a_{11} & a_{12} & \ldots & a_{1p} \\
+a_{21} & a_{22} & \ldots & a_{2p} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{21} & a_{p2} & \ldots & a_{pp} \\
+\end{array}
+\right] \left[ 
+\begin{array}{c}
+X_1\\
+X_2\\
+\vdots\\
+X_p\\
+\end{array}
+\right] = \mathbf{A X}
+$$
+
+La combinación lineal $\mathbf{Y}=\mathbf{AX}$ tiene:
+
+$$
+\mu_y=E(\mathbf{Y})=E(\mathbf{AX})=A \mu_x
+$$
+
+$$
+\Sigma_y=Cov(\mathbf{Y})=Cov(\mathbf{AX})=A \Sigma_x A^{'}
+$$
+
+En base a lo anterior, se obtiene:
+
+$$
+Var(Y_i)=a_{i ,(1xp)}^{'} \Sigma_{x,(pxp)} a_{i, (px1)} \quad i=1, 2, \ldots, p
+$$
+
+$$
+Cov(Y_i,Y_k)=a_i^{'} \Sigma_x a_k \quad i,k=1, 2, \ldots, p
+$$
+
+Los componentes principales son combinaciones lineales incorrelacionadas, tal que \ref{cp5} es lo más grande posible.
+
+El primer componente principal es la combinación lineal con máxima varianza. Entonces se debe maximizar $Var(Y_1)=a_1^{'} \Sigma a_1$. Es claro que $Var(Y_1)$ puede ser incrementada multiplicando a $a_1$ por alguna constante. Para eliminar esta indeterminación, es conveniente restringir los coeficientes del vector. Por lo tanto se define.
+
+$$
+\begin{array}{rcl}
+\text{Primer componente principal} & = & \text{Combinacion lineal} \quad a_1^{'}X \quad \text{que maximiza} \\
+								   &   & Var(a_1^{'}X) \quad \text{sujeto a} \quad a_1^{'} a_1=1\\
+\text{Segundo componente principal} & = & \text{Combinacion lineal} \quad a_2^{'}X \quad \text{que maximiza} \\
+								   &   & Var(a_2^{'}X) \quad \text{sujeto a} \quad a_2^{'} a_2=1 \quad y \\													   &   & Cov(a_1^{'}X,a_2^{'}X)=0			   
+\end{array}
+$$
+ 
+Para el $i-esimo$ paso:
+
+$$
+\begin{array}{rcl}
+i-esimo \text{ componente principal} & = & \text{Combinacion lineal} \quad a_i^{'}X \quad \text{que maximiza} \\
+								   &   & Var(a_i^{'}X) \quad \text{sujeto a} \quad a_i^{'} a_i=1 \quad y \\													   &   & Cov(a_i^{'}X,a_k^{'}X)=0 \quad	para \quad k<i			   
+\end{array}
+$$
+
+$$\Sigma_{(pxp)}= A_{(p*p)} \Lambda_{(p*p)} A^t_{(p*p)} $$
+
+> Ejemplo en R
+
+El aspecto central de componentes principales es trabajar con menos variables, sea $m<p$, el método de componentes busca a partir de $m$, los siguiente:
+
+$$\Sigma_{(pxp)} \approx  A_{(p*m)} \Lambda_{(m*m)} A^t_{(m*p)}$$
+
+Los pasos sugeridos para iniciar el análisis de componentes principales son:
+
+1. *Identificar las variables* de interés dentro de la matriz de datos, si las variables tienen las *mismas escalas* se recomienda emplear la matriz de *covarianza*, si las escalas son *diferentes*, se recomienda trabajar con la matriz de *correlaciones*.
+2. Obtener los componentes principales, los *eigen valores* y la matriz de *eigen vectores*
+3. (Opcional) Eliminar las variables redundantes, 
+  * se sugiere identificar las variables del conjunto de datos correlacionadas con los últimos componentes.
+4. (Opcional) Calcular nuevamente los componentes principales excluyendo las variables identificadas en el paso previo
+5. Elegir el *número de componentes a retener* $m$ (scree plot, tamaño de los eigen valores, etc)
+6. Analizar los resultados y usar los componentes
+
+Usos de componentes principales.
+
+  * Detección de valores atípicos
+  * Identificación de posibles factores 
+  * Los primeros componentes se pueden usar como indicadores
+  * Eliminan la multicolinealidad de un modelo de regresión múltiple
+
+### Funciones en R
+
+```{r}
+rm(list=ls())
+library(corrplot)
+library(dplyr)
+```
+
+### Librerías en R
+
+```{r}
+rm(list=ls())
+library(dplyr)
+library(explor) 
+library(corrplot)
+# Comandos ACP
+m2<-prcomp(bd)
+m2$sdev^2
+m2$rotation[,3]
+m2$center
+m2$scale
+acp<-data.frame(m2$x)
+names(acp)
+prcomp(bd,scale = T)
+#correlacion
+corrplot(cor(bd))
+corrplot(cor(acp))
+plot(m2)
+summary(m2)
+m3<-prcomp(bd, scale=T)
+m4<-prcomp(~cc+nulos+blancos+creemos, data=e20)
+
+m5<-princomp(bd)
+summary(m5)
+plot(m5)
+m5$sdev
+m5$loadings
+
+# EXPLOR
+explor(m2)
+explor(m3)
+explor(m4)
+explor(m5)
+
+e20<-e20 %>% bind_cols(acp)
+
+corrplot(cor(e20 %>% select(PC1,PC2,cc,mas.ipsp, creemos,nulos,blancos)))
+```
+
+## Clustering, Agrupamiento
+
+El clustering es un método cuyo objetivo es el de *crear grupos* en base a las relaciones *multivariantes* que existen en los datos, este método es un método previo a las técnicas de "*clasificación*" que existen. La base del clustering es la definición de la **similaridad entre las filas**. Similaridad es definida como una función de distancia entre un par de filas.
+
+Es importante distinguir la existencia de grupos naturales dentro de los datos, normalmente estos grupos son características naturales de las observaciones de interés. 
+
+Ejemplo de aplicación
+
+  + En las escuelas o universidades, con base a las notas se puede tener grupos. Esto puede servir para estrategias de apoyo. 
+  + En la banca se pueden crear grupos basados en las características de los clientes de créditos/ahorro. Esto puede servir para mejorar servicios o incrementar personal.
+  + En los hospitales sobre la base de datos de pacientes, para tener perfil de los pacientes...
+
+### Medidas de Disimilaridad
+
+Dado el objetivo del clustering, el aspecto mas importante dentro de estos métodos es utilizar de forma correcta la *medida* de (*di*)*similaridad* para los casos dentro de la base de datos.
+
+La definición de las *medidas de distancia* es *crucial* para aplicar estos modelos. Funciones de distancia incorrecta pueden generar sesgos en los resultados y ser un problema para etapas posteriores de la mineria de datos. Debemos distinguir las funciones de distancia según la **naturaleza de las variables**.
+
+Sean las filas $x$ e $y$ dentro de una base de datos, estos vectores tienen una dimensión $p$, es decir, se observan $p$ variables para las 2 observaciones.
+
+> Distancia Euclideana: Variables numéricas
+
+$$d(x,y)=\sqrt{\sum_{i=1}^p{(x_i-y_i)^2}}$$
+
+Donde los $x_i$ y $_y_i$ son los valores para la variable $i$ de las observaciones $x$ e $y$.
+
+> Distancia Manhattan: $p$ grande
+
+$$d(x,y)=\sum_{i=1}^p{|x_i-y_i|}$$
+
+> Distancia Minkowski 
+
+$$d(x,y)=\left(\sum_{i=1}^p{|x_i-y_i|^d}\right)^{1/d}$$
+
+Se recomienda que d sea cercano a 0 cuando p sea grande
+
+> Ejemplo en R
+
+```{r}
+edad<-c(19,25,24,27) 
+materias<-c(2,5,3,5)   
+tiempo<-c(15,60,45,50)
+gasto<-c(20,50,10,22)  
+
+bd<-data.frame(edad,materias,tiempo,gasto)
+
+dist(bd)
+dist(bd, method="manhattan")
+```
+
+#### Distancias para variables nominales (todas nominales)
+
+En este caso la mejor estrategia es llevar las variables con sus categorías a variables binarias. Existen múltiples medidas de distancia para variables binarias, muchas de estas medidas son aproximaciones a las medidas mas conocidas. Entre ellas:
+
+Sean las filas $i$, $j$ que contienen los valores binarios de las variables de estudio. Sea $A$ el total de $1$ que existe en $i$, $B$ el total de $1$ que existe en $j$ y sea $J$ el total de casos en los que los $1$ ocurren simultaneamente en $i$ y $j$.
+
+  * Euclideana
+  
+$$d_{ij}=\sqrt{A+B-2J}$$
+  
+  * Manhattan
+  
+$$d_{ij}=A+B-2J$$
+  * Bray
+  
+$$d_{ij}=\frac{A+B-2J}{A+B}$$
+
+  * Binomial
+  
+$$d_{ij}=log(2)(A+B-2J)$$
+
+#### Distancias para variables mixtas (cuantitativas, nominales, ordinales)
+
+```{r,eval=F}
+library(cluster)
+data("flower")
+str(flower)
+dd<-daisy(flower,metric = "gower")
+summary(dd)
+```
+
+
+### Métodos de clustering
+
+* Partición (k-center)
+* Jerárquicos (dendograma)
+* Basados en densidad
+* Basados en cuadrículas (grid)
+
+### K-center Clustering (no jerárquicos)
+
+Algoritmo
+
+  0. Definición del valor de $k$.
+  1. Partición de las observaciones en $k$ grupos (de forma aleatoria), obtener el vector de centros de cada grupo (centroides). Se puede trabajar con la media, la mediana o el medoide.
+  2. Para cada observación calcular las distancia euclidiana (u otra) a los centroides y reasignar la observación en base a la menor distancia, re calcular los centroides en base a la re asignación de cada observación
+  3. Repetir el paso 2 hasta que que ya no existan más re asignaciones
+  
+```{r}
+rm(list=ls())
+library(cluster) # medoides
+library(Kmedians) # medianas
+library(factoextra) # visual
+library(dplyr)
+data("USArrests")
+bd<-USArrests
+bds<-scale(bd)
+#k medias, euclidiana
+#establecer semilla
+set.seed(820)#controlar la aleatoriedad
+m1<-kmeans(bds,2)# comando de origen
+m1$cluster
+# medianas
+set.seed(826)
+m2<-Kmedians(bds,2)
+m2$bestresult$cluster
+#medoides
+set.seed(826)
+m3<-pam(bds,2)
+m3$clustering
+```
+
+El valor de $k$ respecto el número de grupos ("cluster") puede ser definido con base a un criterio de utilidad propia o basado en un criterio estadístico. 
+
+  + Utilidad: El investigador define el valor
+  + Estadístico: Analizar la buena "pertenencia" a los grupos
+
+> Validación cluster
+
+  * La estructura de los cluster es aleatoria (¿funciona?)
+  * ¿Cómo definimos el valor de $K$? 
+
+> Análisis sobre las distancias 
+
+Se puede elaborar un mapa de calor sobre las distancias
+
+```{r}
+#factoextra
+dd<-get_dist(bds)
+fviz_dist(dd)
+```
+
+> Silhouette coefficient: 
+  1. Se obtiene para la observación $i$ el promedio de distancia a todos los objetos en el mismo cluster ($a_i$)
+  2. Se obtiene para la observación $i$ el promedio de distancia a todos los objetos de los otros clusters ($b_i$)
+  3. Se define a $s_i$ como el coeficiente, con un recorrido entre $[-1,1]$, para cada observación $i$
+
+$$s_i=\frac{b_i-a_i}{max(a_i,b_i)}$$
+
+Idealmente se espera que $a_i < b_i$ y los $a_i$ cercanos a $0$. 
+
+```{r}
+rm(list=ls())
+library(cluster)
+library(Kmedians)
+library(haven)
+library(dplyr)
+###########################
+data(USArrests)
+bd<-USArrests
+bds<-scale(bd)
+##############métodos
+k<-3
+#kmedias
+set.seed(820)
+m1<-kmeans(bds,k)
+m1$centers
+table(m1$cluster)
+#kmediana
+set.seed(820)
+m2<-Kmedians(bds,k)
+m2$bestresult$centers
+table(m2$bestresult$cluster)
+#k medoides
+set.seed(820)
+m3<-pam(bds,k)
+m3$medoids
+table(m3$clustering)
+#coeficiente de silueta
+s1<-silhouette(m1$cluster,dist(bds))
+s2<-silhouette(m2$bestresult$cluster,dist(bds))
+s3<-silhouette(m3$clustering,dist(bds))
+
+mean(s1[,3])
+mean(s2[,3])
+mean(s3[,3])
+plot(s1)
+plot(s2)
+plot(s3)
+#guardando la asignación
+
+bd$G<-m2$bestresult$cluster
+
+bd %>% group_by(G) %>% summarise_all(mean)
+```
+
+> Actividad: Con la base de datos vista, definir para valores de k entre 2 y 10 y los 3 diferentes tipos de centroides el mejor valor de "k" con su respectivo centroide.
+
+
+### Cluster Jerárquico
+
+El objetivo es obtener una *jerarquía* de posibles soluciones que van desde un solo grupo a $n$ grupos, donde $n$ es el número de observaciones en el conjunto de datos.
+
+#### Algoritmo (Johnson)
+
+  1. Se inicia con $n$ grupos y se genera una matriz de $nxn$ de distancias, $D=\{d_{ik}\}$
+  2. Buscar en la matriz de distancia los pares de cluster más cercanos entre ellos, *los cluster mas similares*, si definimos los clusters $V$ y $U$, estamos interesados en encontrar $d_{UV}$
+  3. Unir los cluster $U$ y $V$, re etiquetar el nuevo cluster como $UV$. Actualizar la matriz de distancias a) remover las filas y columnas correspondientes a $U$ y $V$ b) incluimos las nuevas filas y columnas para el nuevo cluster $UV$.
+  4. Repetimos el paso 2 y 3 un total de $n-1$ veces.
+
+El momento de definir el cluster más cercano, se puede emplear los siguientes enlaces:
+
+  * Single linkage (Enlace simple): Se elige al cluster más cercano, con la regla de que las distancia individual entre las observaciones dentro de los clusters es la más corta 
+  * Complete linkage (Enlace completo): Se elige el cluster mas cercano, con la regla que las distancias individuales entre las observaciones dentro de los cluster es la más larga
+  * Average linkage (Enlace promedio): Se elige el cluster mas cercano, considerando el promedio de las distancias entre los cluster.
+
+> Nota: Se debe elegir la matriz de distancias acorde a la naturaleza de los datos, se recomienda:
+
+  * Todas Numéricas: Euclideana o Manhatan
+  * Todas nominales: Transformación a binarias y usar la distancia binomial
+  * Mixtas: Distancia de Gower
+
+Nota: El dendograma es muy útil para ver las relaciones que existen basadas en las distancias y la creación de las jerarquias, a partir de estos se puede definir un $k$ (de forma visual)
+
+Nota: El dendograma pierde su utilidad cuando la cantidad de observaciones es muy alta, 
+
+Ejemplo.
+
+```{r}
+rm(list=ls())
+bd<-USArrests
+bds<-scale(bd)
+dde<-dist(bds)#matriz de distancias
+m1<-hclust(dde,method = "single")
+m2<-hclust(dde,method = "complete")
+m3<-hclust(dde,method = "average")
+
+plot(m1)
+plot(m2)
+plot(m3)
+
+plot(m1,hang=-0.1)
+plot(m2,hang=-0.1)
+plot(m3,hang=-0.1)
+
+# definiendo el valor de k
+k2_m1<-cutree(m1,2)
+k2_m2<-cutree(m2,2)
+k2_m3<-cutree(m3,2)
+
+table(k2_m1)
+table(k2_m2)
+table(k2_m3)
+
+# ver los grupos de forma visual
+plot(m1,hang=-0.1)
+rect.hclust(m1,k=2)
+
+plot(m2,hang=-0.1)
+rect.hclust(m2,k=2)
+rect.hclust(m2,k=10)
+
+plot(m3,hang=-0.1)
+rect.hclust(m3,k=2)
+```
+
+
+Tarea: Para la base de datos vista en la clase , determinar el mejor agrupamiento según las funciones de enlace, y valores de k entre 2 y 10. Tomar la distancia euclidiana. 
+
+En este caso se deben comparar 3*9=27 modelos distintos, se elige el modelo que logre un promedio mayor del coeficiente de silueta. 
+
+```{r}
+library(cluster)
+dde#matriz base
+m1<-hclust(dde,method = "single")
+
+s_simple<-NULL
+
+for(k in 2:10){
+  pp<-cutree(m1,k)
+  ss<-silhouette(pp,dde)
+  s_simple[k-1]<-mean(ss[,3])
+}
+
+s_completo<-NULL
+for(k in 2:10){
+  pp<-cutree(m2,k)
+  ss<-silhouette(pp,dde)
+  s_completo[k-1]<-mean(ss[,3])
+}
+
+s_promedio<-NULL
+for(k in 2:10){
+  pp<-cutree(m3,k)
+  ss<-silhouette(pp,dde)
+  s_promedio[k-1]<-mean(ss[,3])
+}
+rr<-data.frame(k=2:10,
+           s_simple,
+           s_completo,
+           s_promedio)
+```
+
+> Ejemplo
+
+Usando la base de datos de criminalidad de Estados Unidos, identificar el mejor agrupamiento según el método, k-center o jerárquico, mejor valor de k de 2 a 10 y dentro de cada método para el k-center mejor centro (media, mediana, medoide), para el jerárquico mejor función de enlace (simple, completo, promedio).
+
+  * K-center: 9*3=27
+  * Jerárquico: 9*3=27
+
+```{r}
+library(dplyr)
+library(cluster)
+library(Kmedians)
+#preprocesamiento
+bd<-USArrests
+bds<-scale(bd)
+mdist<-dist(bds)
+#k-media
+pskmedia<-NULL
+for(k in 2:10){
+  mk<-kmeans(bds,k)
+  sk<-silhouette(mk$cluster,mdist)
+  pskmedia[k-1]<-mean(sk[,3])
+}
+pskmedia
+#k-mediana
+pskmediana<-NULL
+for(k in 2:10){
+  mk<-Kmedians(bds,k)
+  sk<-silhouette(mk$bestresult$cluster,mdist)
+  pskmediana[k-1]<-mean(sk[,3])
+}
+pskmediana
+#K-medoide
+pskmedoide<-NULL
+for(k in 2:10){
+  mk<-pam(bds,k)
+  sk<-silhouette(mk$clustering,mdist)
+  pskmedoide[k-1]<-mean(sk[,3])
+}
+pskmedoide
+##############
+###Jerárquico
+jsimple<-hclust(mdist,method = "single")
+jcompleto<-hclust(mdist,method = "complete")
+jpromedio<-hclust(mdist,method = "average")
+
+psksimple<-NULL
+pskcompleto<-NULL
+pskpromedio<-NULL
+for(k in 2:10){
+  #simple
+  sk<-silhouette(cutree(jsimple,k),mdist)  
+  psksimple[k-1]<-mean(sk[,3])  
+  #completo
+  sk<-silhouette(cutree(jcompleto,k),mdist)  
+  pskcompleto[k-1]<-mean(sk[,3])  
+  #promedio
+  sk<-silhouette(cutree(jpromedio,k),mdist)  
+  pskpromedio[k-1]<-mean(sk[,3])  
+}
+#sk<-silhouette(cutree(jsimple,8),mdist)  
+#plot(sk)
+psk<-data.frame(
+pskmedia,
+pskmediana,
+pskmedoide,
+psksimple,
+pskcompleto,
+pskpromedio)
+psk<-psk %>% mutate(k=2:10)
+psk
+```
+
+## Ejercicios propuestos
+
+> Reducción de dimensionalidad
+
+1.
+2.
+3.
+4.
+5.
+
+> Agrupamiento
+
+1.
+2.
+3.
+4.
+5.
