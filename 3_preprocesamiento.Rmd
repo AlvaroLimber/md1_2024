@@ -12,11 +12,11 @@ $$\rho_{xy}=\frac{S_{xy}}{S_x S_y}\quad -1\leq \rho_{xy} \leq1$$
 
 ### Componentes Principales 
 
-El método de Análisis de Componentes Principales se ocupa de explicar la estructura de varianza y covarianza de un grupo de variables a través de unas pocas combinaciones lineales de este grupo de variables. En general sus objetivos son (1) la *reducción de los datos* y (2) la *interpretación*.
+El método de Análisis de Componentes Principales se ocupa de explicar la estructura de *varianza* y *covarianza* de un grupo de variables a través de unas pocas *combinaciones lineales* de este grupo de variables. En general sus objetivos son (1) la *reducción de los datos* y (2) la *interpretación*.
 
-Algebráicamente, los componentes principales son combinaciones lineales de $p$ variables aleatorias $X_1$, $X_2$, \ldots, $X_p$. Geométricamente, estas combinaciones lineales representan la selección de un nuevo sistema de coordenadas obtenido por rotación de del sistema original con $X_1$, $X_2$, \ldots, $X_p$ como los ejes de coordenadas. Los nuevos ejes representan la dirección con la máxima variabilidad y provee una simple y más parsimoniosa descripción de la estructura de la covarianza.
+Algebráicamente, los componentes principales son combinaciones lineales de $p$ variables aleatorias $X_1$, $X_2$, \ldots, $X_p$. Geométricamente, estas combinaciones lineales representan la selección de un nuevo **sistema de coordenadas** obtenido por rotación de del sistema original con $X_1$, $X_2$, \ldots, $X_p$ como los ejes de coordenadas. Los nuevos ejes representan la dirección con la máxima variabilidad y provee una simple y más parsimoniosa descripción de la estructura de la covarianza.
 
-Los componentes principales dependen únicamente de la matriz de covarianza $\Sigma$ o la matriz de correlaciones $\rho$ (Matriz estandarizada de $\Sigma$) de $X_1$, $X_2$, \ldots, $X_p$. Su desarrollo no requiere de ningún supuesto de normalidad multivariada, sin embargo, componentes principales derivados de poblaciones normales multivariantes tienen un gran uso en la interpretación en términos de elipsoide de densidad constante.
+Los componentes principales dependen únicamente de la matriz de covarianza $\Sigma$ o la matriz de correlaciones $\rho$ (Matriz estandarizada de $\Sigma$) de $X_1$, $X_2$, \ldots, $X_p$. Su desarrollo **no requiere de ningún supuesto** de normalidad multivariada, sin embargo, componentes principales derivados de poblaciones normales multivariantes tienen un gran uso en la interpretación en términos de elipsoide de densidad constante.
 
 Sea la matriz $\mathbf{X}$ compuesta de $p$ vectores aleatorios $\mathbf{X}=[X_1, X_2, \ldots, X_p ]$ que tiene la matriz de covarianza $\Sigma$ con valores propios $\lambda_1 \geq \lambda_2 \geq \ldots \geq \lambda_p \geq 0$.
 
@@ -46,7 +46,7 @@ Y_p\\
 a_{11} & a_{12} & \ldots & a_{1p} \\
 a_{21} & a_{22} & \ldots & a_{2p} \\
 \vdots & \vdots & \ddots & \vdots \\
-a_{21} & a_{p2} & \ldots & a_{pp} \\
+a_{p1} & a_{p2} & \ldots & a_{pp} \\
 \end{array}
 \right] \left[ 
 \begin{array}{c}
@@ -100,9 +100,24 @@ i-esimo \text{ componente principal} & = & \text{Combinacion lineal} \quad a_i^{
 \end{array}
 $$
 
+> Descomposición Espectral: (algebra lineal) (recordar)
+
 $$\Sigma_{(pxp)}= A_{(p*p)} \Lambda_{(p*p)} A^t_{(p*p)} $$
 
 > Ejemplo en R
+
+```{r}
+data("USArrests")
+View(USArrests)
+sigma<-cov(USArrests)
+rho<-cor(USArrests)
+rho
+det(sigma)
+det(rho)
+eigen(sigma)
+```
+
+
 
 El aspecto central de componentes principales es trabajar con menos variables, sea $m<p$, el método de componentes busca a partir de $m$, los siguiente:
 
