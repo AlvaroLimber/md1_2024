@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Técnicas de pre procesamiento
 
 ## Reducción de dimensionalidad
@@ -111,17 +116,48 @@ data("USArrests")
 View(USArrests)
 sigma<-cov(USArrests)
 rho<-cor(USArrests)
+sigma
 rho
+apply(USArrests, 2, var)
+
 det(sigma)
 det(rho)
-eigen(sigma)
+
+aux<-eigen(sigma)
+sum(aux$values)
+sum(apply(USArrests, 2, var))
+(aux$values/sum(aux$values))*100
+
+A<-aux$vectors
+round(A%*%t(A),1)
+round(t(A)%*%A,1)
+#rho
+aux1<-eigen(rho)
+sum(aux1$values)
+(aux1$values/sum(aux1$values))*100
+
+A<-aux1$vectors
+round(A%*%t(A),1)
+round(t(A)%*%A,1)
 ```
-
-
 
 El aspecto central de componentes principales es trabajar con menos variables, sea $m<p$, el método de componentes busca a partir de $m$, los siguiente:
 
 $$\Sigma_{(pxp)} \approx  A_{(p*m)} \Lambda_{(m*m)} A^t_{(m*p)}$$
+
+```{r}
+#rho
+aux1<-eigen(rho)
+A<-aux1$vectors
+lambda<-diag(aux1$values)
+
+A%*%lambda%*%t(A)
+rho
+
+m<-2
+A[,1:m]%*%lambda[1:m,1:m]%*%t(A[,1:m])
+rho
+```
 
 Los pasos sugeridos para iniciar el análisis de componentes principales son:
 
@@ -139,14 +175,6 @@ Usos de componentes principales.
   * Identificación de posibles factores 
   * Los primeros componentes se pueden usar como indicadores
   * Eliminan la multicolinealidad de un modelo de regresión múltiple
-
-### Funciones en R
-
-```{r}
-rm(list=ls())
-library(corrplot)
-library(dplyr)
-```
 
 ### Librerías en R
 
