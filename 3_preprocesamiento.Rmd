@@ -171,50 +171,79 @@ Los pasos sugeridos para iniciar el análisis de componentes principales son:
 
 Usos de componentes principales.
 
-  * Detección de valores atípicos
+  * Detección de *datos* atípicos *multivariantes*
   * Identificación de posibles factores 
   * Los primeros componentes se pueden usar como indicadores
   * Eliminan la multicolinealidad de un modelo de regresión múltiple
 
-### Librerías en R
+### En R
 
 ```{r}
 rm(list=ls())
+library(corrplot)
+library(dplyr)
+load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/e20v1.RData"))
+bdmun<-e20 %>% group_by(imun, dmun) %>% summarise_at(vars(adn:validos), sum)
+head(bdmun)
+corrplot(cor(bdmun[,-c(1,2)]))
+
+cor(bdmun[,-c(1,2)])
+bdmun %>% ungroup() %>% summarise_at(vars(adn:validos), sum)
+
+bdmun<-bdmun %>% select(-adn, -juntos, -libre.21)
+
+cor(bdmun[,-c(1,2)])
+
+bdmun1<-bdmun %>% select(-emitidos,-inscritos, -validos)
+
+rho<-cor(bdmun1[,-c(1,2)])
+A<-eigen(rho)$vectors
+lambda<-diag(eigen(rho)$values)
+lambda
+eigen(rho)$values
+
+A%*%lambda%*%t(A)
+
+Y<-as.matrix(bdmun1[,-c(1,2)])%*%A
+Y
+#eligiendo los componentes a retener
+#scree plot
+plot(1:7,eigen(rho)$values, type="b")
+sum(eigen(rho)$values)
+eigen(rho)$values/sum(eigen(rho)$values)
+#rho >1
+abline(h=1, col="red")
+```
+
+
+### Librerías en R
+
+```{r}
+#rm(list=ls())
 library(dplyr)
 library(explor) 
 library(corrplot)
 # Comandos ACP
-m2<-prcomp(bd)
+m2<-prcomp(bdmun1[,-c(1,2)], scale. = T, center = T)
 m2$sdev^2
 m2$rotation[,3]
-m2$center
-m2$scale
-acp<-data.frame(m2$x)
-names(acp)
-prcomp(bd,scale = T)
-#correlacion
-corrplot(cor(bd))
-corrplot(cor(acp))
-plot(m2)
+m2$x
+Y1<-data.frame(m2$x)
+screeplot(m2)
 summary(m2)
-m3<-prcomp(bd, scale=T)
-m4<-prcomp(~cc+nulos+blancos+creemos, data=e20)
+names(acp)
+explor(m2)
+prcomp(bd,scale = T)
 
-m5<-princomp(bd)
+#correlacion
+corrplot(cor(bdmun1[,-c(1,2)]))
+corrplot(cor(Y1))
+
+m5<-princomp(bd)#tarea: indagar
 summary(m5)
 plot(m5)
 m5$sdev
 m5$loadings
-
-# EXPLOR
-explor(m2)
-explor(m3)
-explor(m4)
-explor(m5)
-
-e20<-e20 %>% bind_cols(acp)
-
-corrplot(cor(e20 %>% select(PC1,PC2,cc,mas.ipsp, creemos,nulos,blancos)))
 ```
 
 ## Clustering, Agrupamiento
