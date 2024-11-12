@@ -183,29 +183,27 @@ rm(list=ls())
 library(corrplot)
 library(dplyr)
 load(url("https://github.com/AlvaroLimber/md1_2024/raw/refs/heads/main/_data/e20v1.RData"))
+#base de datos a nivel de municipios
 bdmun<-e20 %>% group_by(imun, dmun) %>% summarise_at(vars(adn:validos), sum)
-head(bdmun)
+#correlación
 corrplot(cor(bdmun[,-c(1,2)]))
-
-cor(bdmun[,-c(1,2)])
+#identificando el problema
 bdmun %>% ungroup() %>% summarise_at(vars(adn:validos), sum)
-
+#eliminando variables q son constantes
 bdmun<-bdmun %>% select(-adn, -juntos, -libre.21)
-
 cor(bdmun[,-c(1,2)])
-
 bdmun1<-bdmun %>% select(-emitidos,-inscritos, -validos)
-
+#matriz de correlación
 rho<-cor(bdmun1[,-c(1,2)])
+#descomposición espectral
 A<-eigen(rho)$vectors
 lambda<-diag(eigen(rho)$values)
-lambda
-eigen(rho)$values
-
 A%*%lambda%*%t(A)
-
-Y<-as.matrix(bdmun1[,-c(1,2)])%*%A
-Y
+#matriz de datos. Como se trabajo sobre la matriz de correlación, la matriz de datos debe ser de datos estandarizados. Si fuera por la matriz de covarianza no es necesario.
+bds<-scale(bdmun1[,-c(1,2)])
+Y<-bds%*%A
+cor(Y)
+corrplot(cor(Y))
 #eligiendo los componentes a retener
 #scree plot
 plot(1:7,eigen(rho)$values, type="b")
@@ -215,35 +213,27 @@ eigen(rho)$values/sum(eigen(rho)$values)
 abline(h=1, col="red")
 ```
 
-
 ### Librerías en R
 
 ```{r}
-#rm(list=ls())
-library(dplyr)
 library(explor) 
-library(corrplot)
 # Comandos ACP
 m2<-prcomp(bdmun1[,-c(1,2)], scale. = T, center = T)
-m2$sdev^2
-m2$rotation[,3]
-m2$x
-Y1<-data.frame(m2$x)
+m2$sdev^2# eigen valores
+m2$rotation# eigen vectores
+m2$x #matriz de datos con los componetnes
 screeplot(m2)
 summary(m2)
-names(acp)
-explor(m2)
-prcomp(bd,scale = T)
-
-#correlacion
-corrplot(cor(bdmun1[,-c(1,2)]))
-corrplot(cor(Y1))
-
-m5<-princomp(bd)#tarea: indagar
-summary(m5)
-plot(m5)
-m5$sdev
-m5$loadings
+biplot(m2)#biplot
+explor(m2)#de forma visual
+#Comando princomp
+m3<-princomp(bdmun1[,-c(1,2)], cor = T)#tarea: indagar
+summary(m3)
+plot(m3)
+m3$sdev^2#eigen valores
+m3$loadings# eigen vectores
+m3$scores# Matriz de datos con los componentes
+explor(m3)
 ```
 
 ## Clustering, Agrupamiento
