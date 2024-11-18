@@ -292,9 +292,9 @@ explor(m3)
 
 ## Clustering, Agrupamiento
 
-El clustering es un método cuyo objetivo es el de *crear grupos* en base a las relaciones *multivariantes* que existen en los datos, este método es un método previo a las técnicas de "*clasificación*" que existen. La base del clustering es la definición de la **similaridad entre las filas**. Similaridad es definida como una función de distancia entre un par de filas.
+El clustering es un método cuyo objetivo es el de *crear grupos* en base a las relaciones *multivariantes* que existen en los datos, este método es un método previo a las técnicas de "*clasificación*" que existen. La base del clustering es la definición de la *similaridad entre las filas*. Similaridad es definida como una función de *distancia* entre un par de filas.
 
-Es importante distinguir la existencia de grupos naturales dentro de los datos, normalmente estos grupos son características naturales de las observaciones de interés. 
+Es importante distinguir la existencia de grupos *naturales* dentro de los datos, normalmente estos grupos son características naturales de las observaciones de interés. 
 
 Ejemplo de aplicación
 
@@ -336,8 +336,11 @@ gasto<-c(20,50,10,22)
 
 bd<-data.frame(edad,materias,tiempo,gasto)
 
+sqrt(sum((bd[1,]-bd[2,])^2))
+
 dist(bd)
 dist(bd, method="manhattan")
+dist(bd, method="minkowski", p=0.1)
 ```
 
 #### Distancias para variables nominales (todas nominales)
@@ -353,6 +356,7 @@ $$d_{ij}=\sqrt{A+B-2J}$$
   * Manhattan
   
 $$d_{ij}=A+B-2J$$
+  
   * Bray
   
 $$d_{ij}=\frac{A+B-2J}{A+B}$$
@@ -370,7 +374,6 @@ str(flower)
 dd<-daisy(flower,metric = "gower")
 summary(dd)
 ```
-
 
 ### Métodos de clustering
 
