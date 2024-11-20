@@ -387,9 +387,9 @@ summary(dd)
 Algoritmo
 
   0. Definición del valor de $k$.
-  1. Partición de las observaciones en $k$ grupos (de forma aleatoria), obtener el vector de centros de cada grupo (centroides). Se puede trabajar con la media, la mediana o el medoide.
-  2. Para cada observación calcular las distancia euclidiana (u otra) a los centroides y reasignar la observación en base a la menor distancia, re calcular los centroides en base a la re asignación de cada observación
-  3. Repetir el paso 2 hasta que que ya no existan más re asignaciones
+  1. Partición de las observaciones en $k$ grupos (de forma *aleatoria*), obtener el vector de centros de cada grupo (centroides). Se puede trabajar con la media, la mediana o el medoide.
+  2. Para cada observación calcular las *distancia* euclidiana (u otra) a los centroides y reasignar la observación con base a la menor distancia, re calcular los centroides en base a la re asignación de cada observación
+  3. Repetir el paso 2 hasta que que ya no existan más re *asignaciones*
   
 ```{r}
 rm(list=ls())
@@ -400,19 +400,28 @@ library(dplyr)
 data("USArrests")
 bd<-USArrests
 bds<-scale(bd)
+######################
 #k medias, euclidiana
+######################
 #establecer semilla
-set.seed(820)#controlar la aleatoriedad
-m1<-kmeans(bds,2)# comando de origen
+set.seed(751)#controlar la aleatoriedad
+m1<-kmeans(bd, 5)# comando de origen
 m1$cluster
+table(m1$cluster)
+m1$centers
 # medianas
-set.seed(826)
-m2<-Kmedians(bds,2)
+set.seed(757)
+m2<-Kmedians(bd,5)
 m2$bestresult$cluster
-#medoides
-set.seed(826)
-m3<-pam(bds,2)
+table(m2$bestresult$cluster)
+m2$bestresult$centers
+# medoides
+set.seed(803)
+m3<-pam(bd, 5)
 m3$clustering
+table(m3$clustering)
+m3$medoids
+plot(m3)
 ```
 
 El valor de $k$ respecto el número de grupos ("cluster") puede ser definido con base a un criterio de utilidad propia o basado en un criterio estadístico. 
@@ -472,25 +481,24 @@ m3<-pam(bds,k)
 m3$medoids
 table(m3$clustering)
 #coeficiente de silueta
-s1<-silhouette(m1$cluster,dist(bds))
-s2<-silhouette(m2$bestresult$cluster,dist(bds))
-s3<-silhouette(m3$clustering,dist(bds))
+s1<-silhouette(m1$cluster, dist(bds))
+s2<-silhouette(m2$bestresult$cluster, dist(bds))
+s3<-silhouette(m3$clustering, dist(bds))
 
-mean(s1[,3])
-mean(s2[,3])
-mean(s3[,3])
 plot(s1)
 plot(s2)
 plot(s3)
+
+mean(s1[, 3])
+mean(s2[, 3])
+mean(s3[, 3])
+
 #guardando la asignación
-
 bd$G<-m2$bestresult$cluster
-
 bd %>% group_by(G) %>% summarise_all(mean)
 ```
 
 > Actividad: Con la base de datos vista, definir para valores de k entre 2 y 10 y los 3 diferentes tipos de centroides el mejor valor de "k" con su respectivo centroide.
-
 
 ### Cluster Jerárquico
 
