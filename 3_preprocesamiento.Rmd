@@ -675,21 +675,3 @@ pskpromedio)
 psk<-psk %>% mutate(k=2:10)
 psk
 ```
-
-## Ejercicios propuestos
-
-> Reducción de dimensionalidad
-
-1.
-2.
-3.
-4.
-5.
-
-> Agrupamiento
-
-1.
-2.
-3.
-4.
-5.
