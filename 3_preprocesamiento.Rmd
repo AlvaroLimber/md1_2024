@@ -389,7 +389,7 @@ Algoritmo
   0. Definición del valor de $k$.
   1. Partición de las observaciones en $k$ grupos (de forma *aleatoria*), obtener el vector de centros de cada grupo (centroides). Se puede trabajar con la media, la mediana o el medoide.
   2. Para cada observación calcular las *distancia* euclidiana (u otra) a los centroides y reasignar la observación con base a la menor distancia, re calcular los centroides en base a la re asignación de cada observación
-  3. Repetir el paso 2 hasta que que ya no existan más re *asignaciones*
+  3. Repetir el paso 2 hasta que que ya no existan más re *asignaciones*.
   
 ```{r}
 rm(list=ls())
@@ -525,7 +525,7 @@ El momento de definir el cluster más cercano, se puede emplear los siguientes e
 
 Nota: El dendograma es muy útil para ver las relaciones que existen basadas en las distancias y la creación de las jerarquias, a partir de estos se puede definir un $k$ (de forma visual)
 
-Nota: El dendograma pierde su utilidad cuando la cantidad de observaciones es muy alta, 
+Nota: El dendograma pierde su utilidad cuando la cantidad de observaciones es muy alta. 
 
 Ejemplo.
 
@@ -533,23 +533,23 @@ Ejemplo.
 rm(list=ls())
 bd<-USArrests
 bds<-scale(bd)
-dde<-dist(bds)#matriz de distancias
-m1<-hclust(dde,method = "single")
-m2<-hclust(dde,method = "complete")
-m3<-hclust(dde,method = "average")
+dde<-dist(bds )#matriz de distancias
+m1<-hclust(dde, method = "single")
+m2<-hclust(dde, method = "complete")
+m3<-hclust(dde, method = "average")
 
 plot(m1)
 plot(m2)
 plot(m3)
 
-plot(m1,hang=-0.1)
-plot(m2,hang=-0.1)
-plot(m3,hang=-0.1)
+plot(m1, hang=-0.1)
+plot(m2, hang=-0.1)
+plot(m3, hang=-0.1)
 
 # definiendo el valor de k
-k2_m1<-cutree(m1,2)
-k2_m2<-cutree(m2,2)
-k2_m3<-cutree(m3,2)
+k2_m1<-cutree(m1, 2)
+k2_m2<-cutree(m2, 2)
+k2_m3<-cutree(m3, 2)
 
 table(k2_m1)
 table(k2_m2)
@@ -557,18 +557,18 @@ table(k2_m3)
 
 # ver los grupos de forma visual
 plot(m1,hang=-0.1)
-rect.hclust(m1,k=2)
+rect.hclust(m1,k=3)
 
 plot(m2,hang=-0.1)
-rect.hclust(m2,k=2)
-rect.hclust(m2,k=10)
+rect.hclust(m2,k=3)
 
 plot(m3,hang=-0.1)
-rect.hclust(m3,k=2)
+rect.hclust(m3,k=3)
+
+plot(silhouette(k2_m2, dde))
 ```
 
-
-Tarea: Para la base de datos vista en la clase , determinar el mejor agrupamiento según las funciones de enlace, y valores de k entre 2 y 10. Tomar la distancia euclidiana. 
+Ejemplo: Para la base de datos vista en la clase , determinar el mejor agrupamiento según las funciones de enlace, y valores de k entre 2 y 10. Tomar la distancia euclidiana. 
 
 En este caso se deben comparar 3*9=27 modelos distintos, se elige el modelo que logre un promedio mayor del coeficiente de silueta. 
 
@@ -578,7 +578,6 @@ dde#matriz base
 m1<-hclust(dde,method = "single")
 
 s_simple<-NULL
-
 for(k in 2:10){
   pp<-cutree(m1,k)
   ss<-silhouette(pp,dde)
@@ -598,6 +597,7 @@ for(k in 2:10){
   ss<-silhouette(pp,dde)
   s_promedio[k-1]<-mean(ss[,3])
 }
+
 rr<-data.frame(k=2:10,
            s_simple,
            s_completo,
